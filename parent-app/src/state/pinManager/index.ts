@@ -1,0 +1,1 @@
+export { pinManager } from '../pinManager';

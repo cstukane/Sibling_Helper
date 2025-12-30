@@ -1,0 +1,46 @@
+{
+  "links": [
+    {
+      "id": "link_mferehee_xprpmq",
+      "parentId": "hero-1757296521684",
+      "childId": "hero-1757545751979",
+      "status": "active",
+      "createdAt": "2025-09-11T01:58:16.982Z",
+      "updatedAt": "2025-09-11T01:58:23.601Z"
+    }
+  ],
+  "linkCodes": [
+    {
+      "code": "436955",
+      "issuedBy": "parent",
+      "parentId": "hero-1757296521684",
+      "createdAt": "2025-09-11T01:58:10.644Z",
+      "expiresAt": "2025-09-11T02:13:10.644Z",
+      "status": "consumed",
+      "usedById": "hero-1757545751979",
+      "consumedAt": "2025-09-11T01:58:16.982Z"
+    }
+  ],
+  "assignedTasks": [
+    {
+      "id": "assign_mfetd62m_srpcew",
+      "parentId": "hero-1757296521684",
+      "childId": "hero-1757545751979",
+      "questId": "quest-1757296521689",
+      "assignedAt": "2025-09-11T02:53:14.878Z",
+      "active": true,
+      "title": "Kind words",
+      "points": 1
+    },
+    {
+      "id": "assign_mfesfpht_9q9dh0",
+      "parentId": "hero-1757296521684",
+      "childId": "hero-1757545751979",
+      "questId": "quest-1757296521688",
+      "assignedAt": "2025-09-11T02:27:13.745Z",
+      "active": true,
+      "title": "Quiet time (10m)",
+      "points": 2
+    }
+  ]
+}

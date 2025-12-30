@@ -1,0 +1,68 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@component-tests/*": [
+        "src/components/__tests__/*"
+      ],
+      "@pages/*": [
+        "src/pages/*"
+      ],
+      "@state/*": [
+        "src/state/*"
+      ],
+      "@data/*": [
+        "src/data/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@tests/*": [
+        "src/__tests__/*"
+      ],
+      "@test-utils": [
+        "src/__tests__/testUtils.ts"
+      ],
+      "@sibling-helper/shared": [
+        "../shared"
+      ],
+      "@sibling-helper/shared/*": [
+        "../shared/*"
+      ]
+    },
+    "types": [
+      "vite/client",
+      "vitest/globals",
+      "@testing-library/jest-dom"
+    ]
+  },
+  "include": [
+    "src",
+    "../shared/types/react-bridge.d.ts"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+/* Theme CSS variables */
+:root {
+  /* Light theme tokens */
+  --bg-surface: #ffffff;
+  --bg-surface-overlay: #f8fafc;
+  --bg-surface-elevated: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+  --text-inverse: #f8fafc;
+  --accent-primary: #0ea5e9;
+  --accent-hover: #0284c7;
+  --accent-disabled: #93c5fd;
+  --border-default: #cbd5e1;
+  --border-muted: #e2e8f0;
+  --state-success: #10b981;
+  --state-warn: #f59e0b;
+  --state-error: #ef4444;
+  --ui-button-primary-bg: #0ea5e9;
+  --ui-button-primary-text: #ffffff;
+  --ui-button-secondary-bg: #e2e8f0;
+  --ui-button-secondary-text: #0f172a;
+}
+
+/* Dark theme tokens */
+.dark {
+  --bg-surface: #0f172a;
+  --bg-surface-overlay: #1e293b;
+  --bg-surface-elevated: #1e293b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-inverse: #0f172a;
+  --accent-primary: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --accent-disabled: #0c4a6e;
+  --border-default: #334155;
+  --border-muted: #1e293b;
+  --state-success: #34d399;
+  --state-warn: #fbbf24;
+  --state-error: #f87171;
+  --ui-button-primary-bg: #38bdf8;
+  --ui-button-primary-text: #0c4a6e;
+  --ui-button-secondary-bg: #1e293b;
+  --ui-button-secondary-text: #f8fafc;
+}
+
+/* Apply theme to body */
+body {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: system-ui, sans-serif;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Common component styles using theme tokens */
+.themed-button {
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.themed-button.primary {
+  background-color: var(--ui-button-primary-bg);
+  color: var(--ui-button-primary-text);
+}
+
+.themed-button.secondary {
+  background-color: var(--ui-button-secondary-bg);
+  color: var(--ui-button-secondary-text);
+}
+
+.themed-card {
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.themed-header {
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+}
+
+.themed-text-secondary {
+  color: var(--text-secondary);
+}
