@@ -3,6 +3,7 @@ import { useQuests } from '@state/quests';
 import { useBoard } from '@state/board';
 import QuestCard from '@components/QuestCard';
 import ProgressBar from '@components/ProgressBar';
+import { LoadingIndicator } from '@sibling-helper/shared';
 
 type HomeProps = {
   onNavigateToRewards: () => void;
@@ -19,7 +20,11 @@ const Home = ({ onNavigateToRewards }: HomeProps) => {
   const { boardItems, loading: boardLoading, completeQuest } = useBoard(heroId, today);
 
   if (heroLoading || questsLoading || boardLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ padding: 16 }}>
+        <LoadingIndicator label="Loading dashboard..." />
+      </div>
+    );
   }
 
   // Calculate progression level (every 10 progression points for now)

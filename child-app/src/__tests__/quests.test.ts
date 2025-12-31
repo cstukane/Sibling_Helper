@@ -17,6 +17,7 @@ vi.mock('../data/repositories/questRepository', () => ({
 describe('useQuests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   it('should initialize with stock quests', async () => {
@@ -83,7 +84,15 @@ describe('useQuests', () => {
     // Add new quest
     await result.current.addQuest(newQuest);
 
-    expect(questRepository.create).toHaveBeenCalledWith(newQuest);
+    expect(questRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: newQuest.title,
+        category: newQuest.category,
+        points: newQuest.points,
+        active: true,
+        description: null
+      })
+    );
     // Note: In a real test, we would verify the state update as well
   });
 

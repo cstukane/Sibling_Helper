@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { LoadingIndicator } from '@sibling-helper/shared';
 import App from './App';
 import { initializeDatabase } from './data/initialize';
 
@@ -29,8 +30,8 @@ const AppBootstrap = () => {
   if (status === 'loading') {
     return (
       <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-        <h1 style={{ marginTop: 0 }}>Loading your data...</h1>
-        <p style={{ marginBottom: 0 }}>This should only take a moment.</p>
+        <LoadingIndicator label="Loading your data..." />
+        <p style={{ margin: '12px 0 0 0' }}>This should only take a moment.</p>
       </div>
     );
   }

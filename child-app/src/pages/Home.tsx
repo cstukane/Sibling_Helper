@@ -9,7 +9,7 @@ import HamburgerMenu from '@components/Navigation/HamburgerMenu';
 import ConfirmSubmitModal from '@components/ConfirmSubmitModal';
 import ApprovalToast from '@components/ApprovalToast';
 import analyticsService from '@services/analytics';
-import { taskAssignmentService } from '@sibling-helper/shared';
+import { LoadingIndicator, taskAssignmentService } from '@sibling-helper/shared';
 import type { AssignedTask } from '@sibling-helper/shared';
 
 type HomeProps = {
@@ -58,7 +58,11 @@ const Home = ({ onNavigateToRewards, onNavigateToSettings, onNavigateToPending }
   }, [hero?.id]);
 
   if (heroLoading || questsLoading || boardLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ padding: 16 }}>
+        <LoadingIndicator label="Loading dashboard..." />
+      </div>
+    );
   }
 
   // Calculate progression level (every 10 progression points for now)
@@ -122,7 +126,7 @@ const Home = ({ onNavigateToRewards, onNavigateToSettings, onNavigateToPending }
   return (
     <section>
       {errorMessages.length > 0 && (
-        <div style={{ 
+        <div role="alert" style={{ 
           border: '1px solid var(--state-error)',
           backgroundColor: 'var(--bg-surface-overlay)',
           color: 'var(--state-error)',
@@ -131,6 +135,9 @@ const Home = ({ onNavigateToRewards, onNavigateToSettings, onNavigateToPending }
           marginBottom: 16
         }}>
           <div style={{ fontWeight: 'bold', marginBottom: 8 }}>We ran into a data error</div>
+          <div style={{ fontSize: 13, marginBottom: 8 }}>
+            Try again, and if this keeps happening consider refreshing the app.
+          </div>
           <div style={{ marginBottom: 12 }}>
             {errorMessages.map((message, index) => (
               <div key={`${message}-${index}`}>{message}</div>

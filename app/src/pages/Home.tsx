@@ -3,12 +3,14 @@ import { useQuests } from '@state/quests';
 import { useBoard } from '@state/board';
 import QuestCard from '@components/QuestCard';
 import ProgressBar from '@components/ProgressBar';
+import { LoadingIndicator, useTheme } from '@sibling-helper/shared';
 
 type HomeProps = {
   onNavigateToRewards: () => void;
 };
 
 const Home = ({ onNavigateToRewards }: HomeProps) => {
+  const { isDark } = useTheme();
   const { hero, loading: heroLoading, error: heroError, refreshHero } = useHero();
   const { loading: questsLoading, error: questsError, refreshQuests } = useQuests();
   
@@ -26,7 +28,11 @@ const Home = ({ onNavigateToRewards }: HomeProps) => {
   };
 
   if (heroLoading || questsLoading || boardLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ padding: 16 }}>
+        <LoadingIndicator label="Loading dashboard..." />
+      </div>
+    );
   }
 
   // Calculate progression level (every 10 progression points for now)
@@ -36,7 +42,7 @@ const Home = ({ onNavigateToRewards }: HomeProps) => {
   return (
     <section>
       {errorMessages.length > 0 && (
-        <div style={{ 
+        <div role="alert" style={{ 
           border: '1px solid #ef4444',
           backgroundColor: '#fee2e2',
           color: '#7f1d1d',
@@ -45,6 +51,9 @@ const Home = ({ onNavigateToRewards }: HomeProps) => {
           marginBottom: 16
         }}>
           <div style={{ fontWeight: 'bold', marginBottom: 8 }}>We ran into a data error</div>
+          <div style={{ fontSize: 13, marginBottom: 8 }}>
+            Try again, and if this keeps happening consider refreshing the app.
+          </div>
           <div style={{ marginBottom: 12 }}>
             {errorMessages.map((message, index) => (
               <div key={`${message}-${index}`}>{message}</div>
@@ -120,8 +129,8 @@ const Home = ({ onNavigateToRewards }: HomeProps) => {
           <button 
             onClick={onNavigateToRewards}
             style={{ 
-              background: document.body.classList.contains('dark') ? '#1e293b' : 'none', 
-              border: document.body.classList.contains('dark') ? '1px solid #334155' : 'none', 
+              background: isDark ? '#1e293b' : 'none', 
+              border: isDark ? '1px solid #334155' : 'none', 
               color: '#0ea5e9', 
               cursor: 'pointer',
               textDecoration: 'underline',

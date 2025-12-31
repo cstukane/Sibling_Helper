@@ -23,6 +23,46 @@ export default defineConfig({
                         type: 'image/png'
                     }
                 ]
+            },
+            workbox: {
+                cleanupOutdatedCaches: true,
+                runtimeCaching: [
+                    {
+                        urlPattern: ({ request }) => request.destination === 'image',
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'images',
+                            expiration: {
+                                maxEntries: 50,
+                                maxAgeSeconds: 60 * 60 * 24 * 30
+                            }
+                        }
+                    },
+                    {
+                        urlPattern: ({ request }) => request.destination === 'style' ||
+                            request.destination === 'script' ||
+                            request.destination === 'worker',
+                        handler: 'StaleWhileRevalidate',
+                        options: {
+                            cacheName: 'static-resources',
+                            expiration: {
+                                maxEntries: 60,
+                                maxAgeSeconds: 60 * 60 * 24 * 7
+                            }
+                        }
+                    },
+                    {
+                        urlPattern: ({ request }) => request.destination === 'font',
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'fonts',
+                            expiration: {
+                                maxEntries: 20,
+                                maxAgeSeconds: 60 * 60 * 24 * 365
+                            }
+                        }
+                    }
+                ]
             }
         })
     ],
@@ -35,6 +75,23 @@ export default defineConfig({
             '@services': path.resolve(__dirname, './src/services'),
             '@assets': path.resolve(__dirname, './src/assets'),
             '@sibling-helper/shared': path.resolve(__dirname, '../shared')
+        }
+    },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (!id.includes('node_modules'))
+                        return;
+                    if (id.includes('react'))
+                        return 'react';
+                    if (id.includes('framer-motion'))
+                        return 'motion';
+                    if (id.includes('dexie'))
+                        return 'dexie';
+                    return 'vendor';
+                }
+            }
         }
     },
     test: {

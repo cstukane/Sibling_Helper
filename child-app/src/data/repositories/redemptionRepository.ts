@@ -3,22 +3,33 @@ import { heroRepository } from './heroRepository';
 import { executeDbOperation, safeDbOperation } from '../dbOperations';
 import { queueBackup } from '../dbMaintenance';
 import { formatDatabaseError } from '../../utils/errorMessages';
+import { buildCacheKey, queryCache } from '../queryCache';
+import { applyPagination, type PaginationOptions } from '../queryUtils';
 import type { Redemption } from '@state/redemptionTypes';
 
 export const redemptionRepository = {
-  async getAll(): Promise<Redemption[]> {
-    return safeDbOperation('loading redemptions', () => db.redemptions.toArray(), []);
+  async getAll(pagination?: PaginationOptions<Redemption>): Promise<Redemption[]> {
+    const cacheKey = buildCacheKey('redemptions', 'all', pagination);
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation('loading redemptions', () => applyPagination(db.redemptions, pagination).toArray(), [])
+    );
   },
 
   async getById(id: string): Promise<Redemption | undefined> {
-    return safeDbOperation(`loading redemption ${id}`, () => db.redemptions.get(id), undefined);
+    const cacheKey = buildCacheKey('redemptions', 'byId', id);
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation(`loading redemption ${id}`, () => db.redemptions.get(id), undefined)
+    );
   },
 
-  async getByHeroId(heroId: string): Promise<Redemption[]> {
-    return safeDbOperation(
-      `loading redemptions for hero ${heroId}`,
-      () => db.redemptions.where('heroId').equals(heroId).toArray(),
-      []
+  async getByHeroId(heroId: string, pagination?: PaginationOptions<Redemption>): Promise<Redemption[]> {
+    const cacheKey = buildCacheKey('redemptions', 'byHeroId', { heroId, pagination });
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation(
+        `loading redemptions for hero ${heroId}`,
+        () => applyPagination(db.redemptions.where('heroId').equals(heroId), pagination).toArray(),
+        []
+      )
     );
   },
 
@@ -42,6 +53,7 @@ export const redemptionRepository = {
       // Then create the redemption record
       await executeDbOperation('creating redemption', () => db.redemptions.add(redemptionToSave));
       queueBackup();
+      queryCache.invalidate('redemptions:');
       return id;
     } catch (error) {
       console.error(formatDatabaseError('creating redemption', error), error);
@@ -53,6 +65,7 @@ export const redemptionRepository = {
     try {
       await executeDbOperation('deleting redemption', () => db.redemptions.delete(id));
       queueBackup();
+      queryCache.invalidate('redemptions:');
     } catch (error) {
       console.error(formatDatabaseError(`deleting redemption ${id}`, error), error);
       throw error;

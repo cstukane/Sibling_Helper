@@ -6,6 +6,7 @@ import QuestForm from '@components/QuestForm';
 import RewardForm from '@components/RewardForm';
 import { pinManager } from '@state/pinManager';
 import { isValidPin, sanitizePinInput, sanitizeText } from '../utils/sanitize';
+import { LoadingIndicator, useTheme } from '@sibling-helper/shared';
 
 const ParentMode: React.FC = () => {
   const { hero, updateHero, loading: heroLoading } = useHero();
@@ -17,12 +18,9 @@ const ParentMode: React.FC = () => {
   const [newName, setNewName] = useState(hero?.name || '');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [selectedAvatar, setSelectedAvatar] = useState<File | null>(null);
+  const { isDark, setMode } = useTheme();
   
   // Settings state
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved === 'true' ? true : false;
-  });
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [pinMessage, setPinMessage] = useState('');
@@ -86,16 +84,8 @@ const ParentMode: React.FC = () => {
     }
   };
 
-  const handleThemeChange = (isDark: boolean) => {
-    setIsDarkMode(isDark);
-    localStorage.setItem('darkMode', isDark.toString());
-    
-    // Apply theme to document
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+  const handleThemeChange = (nextDark: boolean) => {
+    setMode(nextDark ? 'dark' : 'light');
   };
 
   const handleChangePin = async () => {
@@ -128,7 +118,11 @@ const ParentMode: React.FC = () => {
   };
 
   if (heroLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ padding: 16 }}>
+        <LoadingIndicator label="Loading parent mode..." />
+      </div>
+    );
   }
 
   return (
@@ -653,7 +647,7 @@ const ParentMode: React.FC = () => {
                 <label style={{ position: 'relative', display: 'inline-block', width: 60, height: 34 }}>
                   <input
                     type="checkbox"
-                    checked={isDarkMode}
+                    checked={isDark}
                     onChange={(e) => handleThemeChange(e.target.checked)}
                     style={{ opacity: 0, width: 0, height: 0 }}
                   />
@@ -664,7 +658,7 @@ const ParentMode: React.FC = () => {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundColor: isDarkMode ? '#0ea5e9' : '#ccc',
+                    backgroundColor: isDark ? '#0ea5e9' : '#ccc',
                     transition: '.4s',
                     borderRadius: 34
                   }}></span>
@@ -678,7 +672,7 @@ const ParentMode: React.FC = () => {
                     backgroundColor: 'white',
                     transition: '.4s',
                     borderRadius: '50%',
-                    transform: isDarkMode ? 'translateX(26px)' : 'translateX(0)'
+                    transform: isDark ? 'translateX(26px)' : 'translateX(0)'
                   }}></span>
                 </label>
               </div>

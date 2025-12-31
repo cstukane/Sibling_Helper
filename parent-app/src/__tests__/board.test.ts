@@ -24,6 +24,7 @@ describe('useBoard', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   it('should load board items with quest details', async () => {

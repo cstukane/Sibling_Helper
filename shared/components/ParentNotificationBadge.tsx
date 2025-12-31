@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import ErrorBoundary from './ErrorBoundary';
 import { pointRequestService } from '../services/pointRequestService';
 
-type ParentNotificationBadgeProps = {
+export type ParentNotificationBadgeProps = {
   visible?: boolean;
 };
 
@@ -31,26 +32,31 @@ const ParentNotificationBadge: React.FC<ParentNotificationBadgeProps> = ({ visib
   }
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: -8,
-        right: -8,
-        backgroundColor: '#ef4444',
-        color: 'white',
-        borderRadius: '50%',
-        width: 20,
-        height: 20,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: 12,
-        fontWeight: 'bold',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-      }}
-    >
-      {pendingCount > 9 ? '9+' : pendingCount}
-    </div>
+    <ErrorBoundary fallback={null}>
+      <div
+        role="status"
+        aria-live="polite"
+        aria-label={`Pending requests: ${pendingCount}`}
+        style={{
+          position: 'absolute',
+          top: -8,
+          right: -8,
+          backgroundColor: '#ef4444',
+          color: 'white',
+          borderRadius: '50%',
+          width: 20,
+          height: 20,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 12,
+          fontWeight: 'bold',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+        }}
+      >
+        {pendingCount > 9 ? '9+' : pendingCount}
+      </div>
+    </ErrorBoundary>
   );
 };
 

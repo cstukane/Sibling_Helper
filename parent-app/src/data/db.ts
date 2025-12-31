@@ -29,6 +29,13 @@ class SiblingHelperDB extends Dexie {
       rewards: 'id, title, cost, active',
       redemptions: 'id, heroId, rewardId, pointsSpent, redeemedAt'
     });
+    this.version(2).stores({
+      heroes: 'id, name, points, streakDays, createdAt, updatedAt',
+      quests: 'id, title, category, points, active, created_at, updated_at, [category+active]',
+      board: 'id, questId, date, heroId, completedAt, [heroId+date]',
+      rewards: 'id, title, cost, active',
+      redemptions: 'id, heroId, rewardId, pointsSpent, redeemedAt'
+    });
   }
 }
 

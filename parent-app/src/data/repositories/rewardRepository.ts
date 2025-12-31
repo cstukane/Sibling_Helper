@@ -2,6 +2,9 @@ import { db } from '../db';
 import { executeDbOperation, safeDbOperation } from '../dbOperations';
 import { queueBackup } from '../dbMaintenance';
 import { formatDatabaseError } from '../../utils/errorMessages';
+import { buildCacheKey, queryCache } from '../queryCache';
+import { applyPagination, type PaginationOptions } from '../queryUtils';
+import type { IndexableType } from 'dexie';
 import type { Reward } from '@state/rewardTypes';
 
 type NewRewardInput = Omit<Reward, 'id' | 'active'> & {
@@ -10,23 +13,29 @@ type NewRewardInput = Omit<Reward, 'id' | 'active'> & {
 };
 
 export const rewardRepository = {
-  async getAll(): Promise<Reward[]> {
-    return safeDbOperation('loading rewards', () => db.rewards.toArray(), []);
+  async getAll(pagination?: PaginationOptions<Reward>): Promise<Reward[]> {
+    const cacheKey = buildCacheKey('rewards', 'all', pagination);
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation('loading rewards', () => applyPagination(db.rewards, pagination).toArray(), [])
+    );
   },
 
   async getById(id: string): Promise<Reward | undefined> {
-    return safeDbOperation(`loading reward ${id}`, () => db.rewards.get(id), undefined);
+    const cacheKey = buildCacheKey('rewards', 'byId', id);
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation(`loading reward ${id}`, () => db.rewards.get(id), undefined)
+    );
   },
 
   async getActive(): Promise<Reward[]> {
-    try {
-      // Use a more reliable query method
-      const allRewards = await this.getAll();
-      return allRewards.filter(reward => reward.active === true);
-    } catch (error) {
-      console.error(formatDatabaseError('loading active rewards', error), error);
-      return [];
-    }
+    const cacheKey = buildCacheKey('rewards', 'active');
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation(
+        'loading active rewards',
+        () => db.rewards.where('active').equals(true as unknown as IndexableType).toArray(),
+        []
+      )
+    );
   },
 
   async create(reward: NewRewardInput): Promise<string> {
@@ -43,6 +52,7 @@ export const rewardRepository = {
 
       await executeDbOperation('creating reward', () => db.rewards.add(rewardToSave));
       queueBackup();
+      queryCache.invalidate('rewards:');
       return id;
     } catch (error) {
       console.error(formatDatabaseError('creating reward', error), error);
@@ -54,6 +64,7 @@ export const rewardRepository = {
     try {
       await executeDbOperation('updating reward', () => db.rewards.update(id, updates));
       queueBackup();
+      queryCache.invalidate('rewards:');
     } catch (error) {
       console.error(formatDatabaseError(`updating reward ${id}`, error), error);
       throw error;
@@ -64,6 +75,7 @@ export const rewardRepository = {
     try {
       await executeDbOperation('deleting reward', () => db.rewards.delete(id));
       queueBackup();
+      queryCache.invalidate('rewards:');
     } catch (error) {
       console.error(formatDatabaseError(`deleting reward ${id}`, error), error);
       throw error;

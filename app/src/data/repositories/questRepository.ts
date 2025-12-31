@@ -2,6 +2,9 @@ import { db } from '../db';
 import { executeDbOperation, safeDbOperation } from '../dbOperations';
 import { queueBackup } from '../dbMaintenance';
 import { formatDatabaseError } from '../../utils/errorMessages';
+import { buildCacheKey, queryCache } from '../queryCache';
+import { applyPagination, type PaginationOptions } from '../queryUtils';
+import type { IndexableType } from 'dexie';
 import type { Quest } from '@state/questTypes';
 
 type NewQuestInput = Omit<Quest, 'id' | 'createdAt' | 'updatedAt' | 'active'> & {
@@ -10,50 +13,56 @@ type NewQuestInput = Omit<Quest, 'id' | 'createdAt' | 'updatedAt' | 'active'> & 
 };
 
 export const questRepository = {
-  async getAll(): Promise<Quest[]> {
-    return safeDbOperation('loading quests', () => db.quests.toArray(), []);
+  async getAll(pagination?: PaginationOptions<Quest>): Promise<Quest[]> {
+    const cacheKey = buildCacheKey('quests', 'all', pagination);
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation('loading quests', () => applyPagination(db.quests, pagination).toArray(), [])
+    );
   },
 
   async getById(id: string): Promise<Quest | undefined> {
-    return safeDbOperation(`loading quest ${id}`, () => db.quests.get(id), undefined);
+    const cacheKey = buildCacheKey('quests', 'byId', id);
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation(`loading quest ${id}`, () => db.quests.get(id), undefined)
+    );
   },
 
   async getByCategory(category: Quest['category']): Promise<Quest[]> {
-    try {
-      // Use a more reliable query method
-      const allQuests = await this.getAll();
-      return allQuests.filter(quest => quest.category === category);
-    } catch (error) {
-      console.error(formatDatabaseError(`loading quests by category ${category}`, error), error);
-      return [];
-    }
+    const cacheKey = buildCacheKey('quests', 'byCategory', category);
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation(
+        `loading quests by category ${category}`,
+        () => db.quests.where('category').equals(category ?? '').toArray(),
+        []
+      )
+    );
   },
 
   async getActive(): Promise<Quest[]> {
-    try {
-      // Use a more reliable query method
-      const allQuests = await this.getAll();
-      return allQuests.filter(quest => quest.active === true);
-    } catch (error) {
-      console.error(formatDatabaseError('loading active quests', error), error);
-      return [];
-    }
+    const cacheKey = buildCacheKey('quests', 'active');
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation(
+        'loading active quests',
+        () => db.quests.where('active').equals(true as unknown as IndexableType).toArray(),
+        []
+      )
+    );
   },
 
   async getRecurringChores(): Promise<Quest[]> {
-    try {
-      // Get all active chores that have a recurrence pattern
-      const allQuests = await this.getAll();
-      return allQuests.filter(quest => 
-        quest.category === 'chores' && 
-        quest.active === true && 
-        quest.recurrence !== null &&
-        quest.recurrence !== undefined
-      );
-    } catch (error) {
-      console.error(formatDatabaseError('loading recurring chores', error), error);
-      return [];
-    }
+    const cacheKey = buildCacheKey('quests', 'recurringChores');
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation(
+        'loading recurring chores',
+        () =>
+          db.quests
+            .where('category')
+            .equals('chores')
+            .filter(quest => quest.active === true && quest.recurrence !== null && quest.recurrence !== undefined)
+            .toArray(),
+        []
+      )
+    );
   },
 
   async create(quest: NewQuestInput): Promise<string> {
@@ -75,6 +84,7 @@ export const questRepository = {
 
       await executeDbOperation('creating quest', () => db.quests.add(questToSave));
       queueBackup();
+      queryCache.invalidate('quests:');
       return id;
     } catch (error) {
       console.error(formatDatabaseError('creating quest', error), error);
@@ -87,6 +97,7 @@ export const questRepository = {
       const now = new Date().toISOString();
       await executeDbOperation('updating quest', () => db.quests.update(id, { ...updates, updatedAt: now }));
       queueBackup();
+      queryCache.invalidate('quests:');
     } catch (error) {
       console.error(formatDatabaseError(`updating quest ${id}`, error), error);
       throw error;
@@ -97,6 +108,7 @@ export const questRepository = {
     try {
       await executeDbOperation('deleting quest', () => db.quests.delete(id));
       queueBackup();
+      queryCache.invalidate('quests:');
     } catch (error) {
       console.error(formatDatabaseError(`deleting quest ${id}`, error), error);
       throw error;

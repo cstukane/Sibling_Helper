@@ -153,7 +153,7 @@ export const linkingService = {
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
       try {
-        const res = await apiRequest('/api/links/enter-code', {
+        const res = await apiRequest<{ pending?: boolean; linkId?: string }>('/api/links/enter-code', {
           method: 'POST',
           body: JSON.stringify({ childId, code })
         }, { queueIfOffline: true });

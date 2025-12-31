@@ -4,6 +4,7 @@ import { questRepository } from '@data/repositories/questRepository';
 import analyticsService from '@services/analytics';
 import type { DailyBoardItem } from '@state/boardTypes';
 import type { Quest } from '@state/questTypes';
+import { LoadingIndicator } from '@sibling-helper/shared';
 
 interface Submission {
   id: string;
@@ -101,11 +102,12 @@ const PendingSubmissions: React.FC = () => {
           }}>Pending Submissions</h1>
         </header>
         <div style={{ 
-          textAlign: 'center', 
+          display: 'flex',
+          justifyContent: 'center',
           padding: '48px 16px',
           color: 'var(--text-secondary)'
         }}>
-          Loading submissions...
+          <LoadingIndicator label="Loading submissions..." />
         </div>
       </section>
     );

@@ -56,7 +56,7 @@ describe('QuestForm Component', () => {
     });
     
     fireEvent.change(screen.getByLabelText('Points'), {
-      target: { value: '15' }
+      target: { value: '10' }
     });
     
     // Submit form

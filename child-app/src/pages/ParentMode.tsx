@@ -7,6 +7,7 @@ import RewardForm from '@components/RewardForm';
 import { useTheme } from '@components/ThemeProvider';
 import { getQuestType } from '@utils/questUtils';
 import { pinManager } from '@state/pinManager';
+import { LoadingIndicator } from '@sibling-helper/shared';
 import { isValidPin, sanitizePinInput, sanitizeText } from '../utils/sanitize';
 
 const ParentMode: React.FC = () => {
@@ -115,7 +116,11 @@ const ParentMode: React.FC = () => {
   };
 
   if (heroLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ padding: 16 }}>
+        <LoadingIndicator label="Loading parent mode..." />
+      </div>
+    );
   }
 
   return (

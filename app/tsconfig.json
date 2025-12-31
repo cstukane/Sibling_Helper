@@ -20,6 +20,7 @@
     ],
     "baseUrl": ".",
     "paths": {
+      "@sibling-helper/shared": ["../shared/index.ts"],
       "@components/*": ["src/components/*"],
       "@component-tests/*": ["src/components/__tests__/*"],
       "@pages/*": ["src/pages/*"],

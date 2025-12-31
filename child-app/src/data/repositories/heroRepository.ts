@@ -2,6 +2,8 @@ import { db } from '../db';
 import { executeDbOperation, safeDbOperation } from '../dbOperations';
 import { queueBackup } from '../dbMaintenance';
 import { formatDatabaseError } from '../../utils/errorMessages';
+import { buildCacheKey, queryCache } from '../queryCache';
+import { applyPagination, type PaginationOptions } from '../queryUtils';
 import type { Hero } from '@state/heroTypes';
 
 type NewHeroInput = Omit<
@@ -18,12 +20,18 @@ type NewHeroInput = Omit<
 };
 
 export const heroRepository = {
-  async getAll(): Promise<Hero[]> {
-    return safeDbOperation('loading heroes', () => db.heroes.toArray(), []);
+  async getAll(pagination?: PaginationOptions<Hero>): Promise<Hero[]> {
+    const cacheKey = buildCacheKey('heroes', 'all', pagination);
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation('loading heroes', () => applyPagination(db.heroes, pagination).toArray(), [])
+    );
   },
 
   async getById(id: string): Promise<Hero | undefined> {
-    return safeDbOperation(`loading hero ${id}`, () => db.heroes.get(id), undefined);
+    const cacheKey = buildCacheKey('heroes', 'byId', id);
+    return queryCache.getOrSet(cacheKey, () =>
+      safeDbOperation(`loading hero ${id}`, () => db.heroes.get(id), undefined)
+    );
   },
 
   async create(hero: NewHeroInput): Promise<string> {
@@ -44,6 +52,7 @@ export const heroRepository = {
 
       await executeDbOperation('creating hero', () => db.heroes.add(heroToSave));
       queueBackup();
+      queryCache.invalidate('heroes:');
       return id;
     } catch (error) {
       console.error(formatDatabaseError('creating hero', error), error);
@@ -56,6 +65,7 @@ export const heroRepository = {
       const now = new Date().toISOString();
       await executeDbOperation('updating hero', () => db.heroes.update(id, { ...updates, updatedAt: now }));
       queueBackup();
+      queryCache.invalidate('heroes:');
     } catch (error) {
       console.error(formatDatabaseError(`updating hero ${id}`, error), error);
       throw error;
@@ -66,6 +76,7 @@ export const heroRepository = {
     try {
       await executeDbOperation('deleting hero', () => db.heroes.delete(id));
       queueBackup();
+      queryCache.invalidate('heroes:');
     } catch (error) {
       console.error(formatDatabaseError(`deleting hero ${id}`, error), error);
       throw error;

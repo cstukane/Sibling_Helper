@@ -31,9 +31,19 @@ export { taskAssignmentService } from './services/taskAssignmentService';
 // Shared API client
 export { apiClient } from './api/client';
 
+// Shared theme
+export { ThemeProvider, useTheme } from './theme/ThemeProvider';
+export { themeTokens, getTokenValue, themeCSSVariables } from './theme/themeTokens';
+
 // Shared components
 export { default as QuestCompletionModal } from './components/QuestCompletionModal';
 export { default as ParentNotificationBadge } from './components/ParentNotificationBadge';
 export { default as PointRequestApprovalPanel } from './components/PointRequestApprovalPanel';
+export { default as ErrorBoundary } from './components/ErrorBoundary';
+export { default as LoadingIndicator } from './components/LoadingIndicator';
+export type { QuestCompletionModalProps } from './components/QuestCompletionModal';
+export type { ParentNotificationBadgeProps } from './components/ParentNotificationBadge';
+export type { PointRequestApprovalPanelProps } from './components/PointRequestApprovalPanel';
 export type { Link, LinkCode, LinkStatus, LinkCodeStatus, LinkLimits } from './types/linkingTypes';
 export type { AssignedTask } from './types/assignmentTypes';
+export { sharedVersion } from './version';

@@ -17,6 +17,7 @@ vi.mock('../data/repositories/rewardRepository', () => ({
 describe('useRewards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   it('should initialize with default rewards', async () => {
@@ -75,7 +76,14 @@ describe('useRewards', () => {
     // Add new reward
     await result.current.addReward(newReward);
 
-    expect(rewardRepository.create).toHaveBeenCalledWith(newReward);
+    expect(rewardRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: newReward.title,
+        cost: newReward.cost,
+        active: true,
+        description: null
+      })
+    );
   });
 
   it('should handle loading errors', async () => {

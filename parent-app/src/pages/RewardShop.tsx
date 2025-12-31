@@ -5,6 +5,7 @@ import { useRedemptions } from '@state/redemptions';
 import RewardCard from '@components/RewardCard';
 import PinPad from '@components/PinPad';
 import { pinManager } from '@state/pinManager';
+import { LoadingIndicator } from '@sibling-helper/shared';
 
 const RewardShop: React.FC = () => {
   const { hero, loading: heroLoading, error: heroError, refreshHero } = useHero();
@@ -64,13 +65,17 @@ const RewardShop: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ padding: 16 }}>
+        <LoadingIndicator label="Loading reward shop..." />
+      </div>
+    );
   }
 
   if (!hero) {
     return (
       <section>
-        <div style={{ 
+        <div role="alert" style={{ 
           border: '1px solid #ef4444',
           backgroundColor: '#fee2e2',
           color: '#7f1d1d',
@@ -78,6 +83,9 @@ const RewardShop: React.FC = () => {
           borderRadius: 8
         }}>
           <div style={{ fontWeight: 'bold', marginBottom: 8 }}>Unable to load profile</div>
+          <div style={{ fontSize: 13, marginBottom: 8 }}>
+            Try again, and if this keeps happening consider refreshing the app.
+          </div>
           {errorMessages.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               {errorMessages.map((message, index) => (
@@ -107,7 +115,7 @@ const RewardShop: React.FC = () => {
   return (
     <section>
       {errorMessages.length > 0 && (
-        <div style={{ 
+        <div role="alert" style={{ 
           border: '1px solid #ef4444',
           backgroundColor: '#fee2e2',
           color: '#7f1d1d',
@@ -116,6 +124,9 @@ const RewardShop: React.FC = () => {
           marginBottom: 16
         }}>
           <div style={{ fontWeight: 'bold', marginBottom: 8 }}>We ran into a data error</div>
+          <div style={{ fontSize: 13, marginBottom: 8 }}>
+            Try again, and if this keeps happening consider refreshing the app.
+          </div>
           <div style={{ marginBottom: 12 }}>
             {errorMessages.map((message, index) => (
               <div key={`${message}-${index}`}>{message}</div>

@@ -7,7 +7,7 @@ import { useLinkedChildren } from '@state/linkedChildren';
 import RewardForm from '@components/RewardForm';
 import Tasks from './Tasks';
 import { pinManager } from '@state/pinManager';
-import { PointRequestApprovalPanel, linkingService, taskAssignmentService } from '@sibling-helper/shared';
+import { LoadingIndicator, PointRequestApprovalPanel, linkingService, taskAssignmentService, useTheme } from '@sibling-helper/shared';
 import type { Link } from '@sibling-helper/shared';
 import LinkRequestToast from '@components/LinkRequestToast';
 import { isValidPin, sanitizePinInput, sanitizeText } from '../utils/sanitize';
@@ -42,6 +42,7 @@ const ParentMode = () => {
   const [manageOpenByChild, setManageOpenByChild] = useState<Record<string, boolean>>({});
   const [pendingLinks, setPendingLinks] = useState<Link[]>([]);
   const dataErrors = [heroError, questsError, rewardsError].filter(Boolean) as string[];
+  const { isDark, setMode } = useTheme();
 
   const handleRetryData = async () => {
     await refreshHero();
@@ -111,10 +112,6 @@ const ParentMode = () => {
   };
   
   // Settings state
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved === 'true' ? true : false;
-  });
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [pinMessage, setPinMessage] = useState('');
@@ -141,30 +138,6 @@ const ParentMode = () => {
       setNewName(hero.name);
     }
   }, [hero]);
-
-  // Listen for dark mode changes from other apps
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'darkMode') {
-        const darkMode = e.newValue === 'true';
-        setIsDarkMode(darkMode);
-        
-        // Apply theme to document
-        if (darkMode) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    // Cleanup listener
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
 
   const handleSaveProfile = async () => {
     if (!hero) return;
@@ -205,25 +178,8 @@ const ParentMode = () => {
     }
   };
 
-  const handleThemeChange = (isDark: boolean) => {
-    setIsDarkMode(isDark);
-    localStorage.setItem('darkMode', isDark.toString());
-    
-    // Apply theme to document
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    
-    // Apply border color based on theme and user preference
-    const savedBorderColor = localStorage.getItem('borderColor');
-    if (savedBorderColor && savedBorderColor !== 'system') {
-      document.documentElement.style.setProperty('--frame-border', savedBorderColor);
-    } else {
-      // Use default based on theme
-      document.documentElement.style.setProperty('--frame-border', isDark ? '#000000' : '#ffffff');
-    }
+  const handleThemeChange = (nextDark: boolean) => {
+    setMode(nextDark ? 'dark' : 'light');
   };
 
   const handleChangePin = async () => {
@@ -317,13 +273,17 @@ const ParentMode = () => {
   };
 
   if (heroLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div style={{ padding: 16 }}>
+        <LoadingIndicator label="Loading parent mode..." />
+      </div>
+    );
   }
 
   return (
     <div style={{ 
-      backgroundColor: isDarkMode ? '#0f172a' : '#ffffff',
-      color: isDarkMode ? '#f8fafc' : '#000000',
+      backgroundColor: isDark ? '#0f172a' : '#ffffff',
+      color: isDark ? '#f8fafc' : '#000000',
       minHeight: '100vh',
       // Ensure edge-to-edge coverage
       margin: 0,
@@ -334,14 +294,14 @@ const ParentMode = () => {
     }}>
       <h1 style={{ 
         margin: 0, 
-        color: isDarkMode ? '#f8fafc' : '#000000',
-        backgroundColor: isDarkMode ? '#0f172a' : '#ffffff'
+        color: isDark ? '#f8fafc' : '#000000',
+        backgroundColor: isDark ? '#0f172a' : '#ffffff'
       }}>
         Parent Mode
       </h1>
 
       {dataErrors.length > 0 && (
-        <div style={{ 
+        <div role="alert" style={{ 
           border: '1px solid #ef4444',
           backgroundColor: '#fee2e2',
           color: '#7f1d1d',
@@ -350,6 +310,9 @@ const ParentMode = () => {
           margin: '12px 16px'
         }}>
           <div style={{ fontWeight: 'bold', marginBottom: 8 }}>We ran into a data error</div>
+          <div style={{ fontSize: 13, marginBottom: 8 }}>
+            Try again, and if this keeps happening consider refreshing the app.
+          </div>
           <div style={{ marginBottom: 12 }}>
             {dataErrors.map((message, index) => (
               <div key={`${message}-${index}`}>{message}</div>
@@ -378,10 +341,10 @@ const ParentMode = () => {
         overflowX: 'auto',
         gap: 16,
         marginBottom: 24,
-        borderBottom: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
+        borderBottom: isDark ? '1px solid #334155' : '1px solid #ddd',
         paddingBottom: 8,
         scrollbarWidth: 'none', // Hide scrollbar for Firefox
-        backgroundColor: isDarkMode ? '#0f172a' : '#ffffff'
+        backgroundColor: isDark ? '#0f172a' : '#ffffff'
       }}>
         <style>{`
           /* Hide scrollbar for Chrome, Safari and Opera */
@@ -400,7 +363,7 @@ const ParentMode = () => {
             background: 'none',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
-            color: isDarkMode ? '#f8fafc' : '#000000'
+            color: isDark ? '#f8fafc' : '#000000'
           }}
         >
           Profile
@@ -416,7 +379,7 @@ const ParentMode = () => {
             background: 'none',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
-            color: isDarkMode ? '#f8fafc' : '#000000'
+            color: isDark ? '#f8fafc' : '#000000'
           }}
         >
           Tasks
@@ -432,7 +395,7 @@ const ParentMode = () => {
             background: 'none',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
-            color: isDarkMode ? '#f8fafc' : '#000000'
+            color: isDark ? '#f8fafc' : '#000000'
           }}
         >
           Rewards
@@ -449,7 +412,7 @@ const ParentMode = () => {
             background: 'none',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
-            color: isDarkMode ? '#f8fafc' : '#000000'
+            color: isDark ? '#f8fafc' : '#000000'
           }}
         >
           <span role="img" aria-label="Requests" style={{ marginRight: 6 }}>!</span>
@@ -489,7 +452,7 @@ const ParentMode = () => {
             background: 'none',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
-            color: isDarkMode ? '#f8fafc' : '#000000'
+            color: isDark ? '#f8fafc' : '#000000'
           }}
         >
           Settings
@@ -498,7 +461,7 @@ const ParentMode = () => {
 
       {activeTab === 'profile' && (
         <section>
-          <h2 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Child Profile</h2>
+          <h2 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Child Profile</h2>
           
           <div style={{ 
             display: 'flex', 
@@ -506,10 +469,10 @@ const ParentMode = () => {
             alignItems: 'center',
             gap: 16,
             padding: 24,
-            border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
+            border: isDark ? '1px solid #334155' : '1px solid #ddd',
             borderRadius: 8,
             marginBottom: 24,
-            backgroundColor: isDarkMode ? '#1e293b' : 'white'
+            backgroundColor: isDark ? '#1e293b' : 'white'
           }}>
             <div style={{ position: 'relative' }}>
               <div style={{
@@ -581,7 +544,7 @@ const ParentMode = () => {
             </div>
             
             <div style={{ width: '100%', maxWidth: 300 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#000000' }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold', color: isDark ? '#f8fafc' : '#000000' }}>
                 Child's Name
               </label>
               <input
@@ -592,11 +555,11 @@ const ParentMode = () => {
                 style={{
                   width: '100%',
                   padding: 12,
-                  border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
+                  border: isDark ? '1px solid #334155' : '1px solid #ddd',
                   borderRadius: 8,
                   fontSize: 16,
-                  backgroundColor: isDarkMode ? '#0f172a' : 'white',
-                  color: isDarkMode ? '#f8fafc' : '#000000'
+                  backgroundColor: isDark ? '#0f172a' : 'white',
+                  color: isDark ? '#f8fafc' : '#000000'
                 }}
               />
               
@@ -621,13 +584,13 @@ const ParentMode = () => {
           </div>
           
           <div style={{ 
-            backgroundColor: isDarkMode ? '#1e293b' : '#f0f9ff', 
+            backgroundColor: isDark ? '#1e293b' : '#f0f9ff', 
             padding: 16, 
             borderRadius: 8,
-            border: isDarkMode ? '1px solid #334155' : '1px solid #bae6fd'
+            border: isDark ? '1px solid #334155' : '1px solid #bae6fd'
           }}>
-            <h3 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Profile Tips</h3>
-            <ul style={{ color: isDarkMode ? '#cbd5e1' : '#000000' }}>
+            <h3 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Profile Tips</h3>
+            <ul style={{ color: isDark ? '#cbd5e1' : '#000000' }}>
               <li>Use a friendly nickname that the child likes</li>
               <li>Choose a clear photo that shows the child's face</li>
               <li>The profile will be displayed in Kid Mode</li>
@@ -635,34 +598,34 @@ const ParentMode = () => {
             {/* Link Child App (moved to bottom) */}
             <div style={{ 
               padding: 20, 
-              border: isDarkMode ? '1px solid #334155' : '1px solid #ddd', 
+              border: isDark ? '1px solid #334155' : '1px solid #ddd', 
               borderRadius: 8,
-              backgroundColor: isDarkMode ? '#1e293b' : 'white'
+              backgroundColor: isDark ? '#1e293b' : 'white'
             }}>
-              <h3 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Link Child App</h3>
-              <p style={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>Generate a 6-digit code and have your child enter it on their device. You will still need to approve the request here.</p>
+              <h3 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Link Child App</h3>
+              <p style={{ color: isDark ? '#94a3b8' : '#64748b' }}>Generate a 6-digit code and have your child enter it on their device. You will still need to approve the request here.</p>
               {generatedCode && (
                 <div style={{
                   padding: 12,
                   border: '1px dashed #0ea5e9',
                   borderRadius: 8,
                   marginBottom: 8,
-                  background: isDarkMode ? '#0b1220' : '#f0f9ff'
+                  background: isDark ? '#0b1220' : '#f0f9ff'
                 }}>
-                  <div style={{ fontSize: 12, color: isDarkMode ? '#94a3b8' : '#0369a1' }}>Share this code</div>
+                  <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#0369a1' }}>Share this code</div>
                   <div style={{ fontSize: 28, letterSpacing: 6, fontWeight: 700 }}>{generatedCode}</div>
                 </div>
               )}
               {linkMessage && (
-                <div style={{ marginBottom: 8, fontSize: 12, color: isDarkMode ? '#94a3b8' : '#64748b' }}>{linkMessage}</div>
+                <div style={{ marginBottom: 8, fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>{linkMessage}</div>
               )}
               {linkError && (
                 <div style={{
                   marginBottom: 12,
                   padding: 12,
                   border: '1px solid #ef4444',
-                  color: isDarkMode ? '#fca5a5' : '#991b1b',
-                  background: isDarkMode ? '#7f1d1d' : '#fee2e2',
+                  color: isDark ? '#fca5a5' : '#991b1b',
+                  background: isDark ? '#7f1d1d' : '#fee2e2',
                   borderRadius: 8
                 }}>{linkError}</div>
               )}
@@ -685,12 +648,12 @@ const ParentMode = () => {
             {/* Assignment Tools (moved to bottom) */}
             <div style={{ 
               padding: 20, 
-              border: isDarkMode ? '1px solid #334155' : '1px solid #ddd', 
+              border: isDark ? '1px solid #334155' : '1px solid #ddd', 
               borderRadius: 8,
-              backgroundColor: isDarkMode ? '#1e293b' : 'white'
+              backgroundColor: isDark ? '#1e293b' : 'white'
             }}>
-              <h3 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Assignment Tools</h3>
-              <p style={{ color: isDarkMode ? '#94a3b8' : '#64748b', marginTop: 0 }}>Backfill missing assignment details (title/points) for older assignments.</p>
+              <h3 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Assignment Tools</h3>
+              <p style={{ color: isDark ? '#94a3b8' : '#64748b', marginTop: 0 }}>Backfill missing assignment details (title/points) for older assignments.</p>
               <button
                 onClick={async () => {
                   try {
@@ -713,7 +676,7 @@ const ParentMode = () => {
       )}
 
       {activeTab === 'tasks' && (
-        <Tasks isDarkMode={isDarkMode} />
+        <Tasks isDarkMode={isDark} />
       )}
 
       {activeTab === 'rewards' && (
@@ -724,7 +687,7 @@ const ParentMode = () => {
             alignItems: 'center',
             marginBottom: 24
           }}>
-            <h2 style={{ color: isDarkMode ? '#f8fafc' : '#000000', margin: 0 }}>
+            <h2 style={{ color: isDark ? '#f8fafc' : '#000000', margin: 0 }}>
               Rewards
             </h2>
             <button
@@ -750,21 +713,21 @@ const ParentMode = () => {
                 key={reward.id} 
                 style={{ 
                   padding: 16, 
-                  border: isDarkMode ? '1px solid #334155' : '1px solid #ddd', 
+                  border: isDark ? '1px solid #334155' : '1px solid #ddd', 
                   borderRadius: 8,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  backgroundColor: isDarkMode ? '#1e293b' : 'white'
+                  backgroundColor: isDark ? '#1e293b' : 'white'
                 }}
               >
                 <div>
-                  <strong style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>{reward.title}</strong>
-                  <div style={{ color: isDarkMode ? '#94a3b8' : '#64748b', marginTop: 4 }}>
+                  <strong style={{ color: isDark ? '#f8fafc' : '#000000' }}>{reward.title}</strong>
+                  <div style={{ color: isDark ? '#94a3b8' : '#64748b', marginTop: 4 }}>
                     Cost: {reward.cost} pts
                   </div>
                   {reward.description && (
-                    <div style={{ color: isDarkMode ? '#cbd5e1' : '#334155', marginTop: 4, fontSize: 14 }}>
+                    <div style={{ color: isDark ? '#cbd5e1' : '#334155', marginTop: 4, fontSize: 14 }}>
                       {reward.description}
                     </div>
                   )}
@@ -777,9 +740,9 @@ const ParentMode = () => {
                     }}
                     style={{
                       padding: '4px 8px',
-                      border: isDarkMode ? '1px solid #0ea5e9' : '1px solid #0ea5e9',
-                      background: isDarkMode ? '#0f172a' : 'white',
-                      color: isDarkMode ? '#38bdf8' : '#0ea5e9',
+                      border: isDark ? '1px solid #0ea5e9' : '1px solid #0ea5e9',
+                      background: isDark ? '#0f172a' : 'white',
+                      color: isDark ? '#38bdf8' : '#0ea5e9',
                       borderRadius: 4,
                       cursor: 'pointer'
                     }}
@@ -790,9 +753,9 @@ const ParentMode = () => {
                     onClick={() => deleteReward(reward.id)}
                     style={{
                       padding: '4px 8px',
-                      border: isDarkMode ? '1px solid #ef4444' : '1px solid #ef4444',
-                      background: isDarkMode ? '#0f172a' : 'white',
-                      color: isDarkMode ? '#f87171' : '#ef4444',
+                      border: isDark ? '1px solid #ef4444' : '1px solid #ef4444',
+                      background: isDark ? '#0f172a' : 'white',
+                      color: isDark ? '#f87171' : '#ef4444',
                       borderRadius: 4,
                       cursor: 'pointer'
                     }}
@@ -819,7 +782,7 @@ const ParentMode = () => {
               zIndex: 1000
             }}>
               <div style={{
-                backgroundColor: isDarkMode ? '#0f172a' : 'white',
+                backgroundColor: isDark ? '#0f172a' : 'white',
                 padding: 24,
                 borderRadius: 8,
                 maxWidth: 500,
@@ -829,7 +792,7 @@ const ParentMode = () => {
               }}>
                 <h3 style={{ 
                   marginTop: 0, 
-                  color: isDarkMode ? '#f8fafc' : '#000000',
+                  color: isDark ? '#f8fafc' : '#000000',
                   marginBottom: 20
                 }}>
                   {editingReward ? 'Edit Reward' : 'Add Reward'}
@@ -859,25 +822,25 @@ const ParentMode = () => {
 
       {activeTab === 'requests' && (
         <section>
-          <h2 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Point Requests</h2>
+          <h2 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Point Requests</h2>
           <p>Review and approve point requests from your child.</p>
       <PointRequestApprovalPanel />
 
-          <div style={{ marginTop: 32, paddingTop: 16, borderTop: isDarkMode ? '1px solid #334155' : '1px solid #ddd' }}>
-            <h2 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Link Requests</h2>
+          <div style={{ marginTop: 32, paddingTop: 16, borderTop: isDark ? '1px solid #334155' : '1px solid #ddd' }}>
+            <h2 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Link Requests</h2>
             <p>Approve or decline pending link requests from a child device.</p>
             {linkError && (
               <div style={{
                 marginBottom: 12,
                 padding: 12,
                 border: '1px solid #ef4444',
-                color: isDarkMode ? '#fca5a5' : '#991b1b',
-                background: isDarkMode ? '#7f1d1d' : '#fee2e2',
+                color: isDark ? '#fca5a5' : '#991b1b',
+                background: isDark ? '#7f1d1d' : '#fee2e2',
                 borderRadius: 8
               }}>{linkError}</div>
             )}
             {pendingLinks.length === 0 ? (
-              <div style={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>No pending link requests.</div>
+              <div style={{ color: isDark ? '#94a3b8' : '#64748b' }}>No pending link requests.</div>
             ) : (
               <div style={{ display: 'grid', gap: 12 }}>
                 {pendingLinks.map((l) => (
@@ -886,13 +849,13 @@ const ParentMode = () => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     padding: 12,
-                    border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
+                    border: isDark ? '1px solid #334155' : '1px solid #ddd',
                     borderRadius: 8,
-                    background: isDarkMode ? '#0f172a' : '#fff'
+                    background: isDark ? '#0f172a' : '#fff'
                   }}>
                     <div>
                       <div style={{ fontWeight: 600 }}>Child request</div>
-                      <div style={{ fontSize: 12, color: isDarkMode ? '#94a3b8' : '#64748b' }}>childId: {l.childId}</div>
+                      <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>childId: {l.childId}</div>
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => approvePendingLink(l.id)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #16a34a', color: '#16a34a', background: 'transparent' }}>Approve</button>
@@ -908,40 +871,40 @@ const ParentMode = () => {
 
       {activeTab === 'settings' && (
         <section>
-          <h2 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Settings</h2>
+          <h2 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Settings</h2>
             
             {/* Theme Settings */}
             <div style={{ 
               padding: 20, 
-              border: isDarkMode ? '1px solid #334155' : '1px solid #ddd', 
+              border: isDark ? '1px solid #334155' : '1px solid #ddd', 
               borderRadius: 8,
-              backgroundColor: isDarkMode ? '#1e293b' : 'white',
+              backgroundColor: isDark ? '#1e293b' : 'white',
               display: 'none'
             }}>
-              <h3 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Link Child App</h3>
-              <p style={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>Generate a 6-digit code and have your child enter it on their device. You will still need to approve the request here.</p>
+              <h3 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Link Child App</h3>
+              <p style={{ color: isDark ? '#94a3b8' : '#64748b' }}>Generate a 6-digit code and have your child enter it on their device. You will still need to approve the request here.</p>
               {generatedCode && (
                 <div style={{
                   padding: 12,
                   border: '1px dashed #0ea5e9',
                   borderRadius: 8,
                   marginBottom: 8,
-                  background: isDarkMode ? '#0b1220' : '#f0f9ff'
+                  background: isDark ? '#0b1220' : '#f0f9ff'
                 }}>
-                  <div style={{ fontSize: 12, color: isDarkMode ? '#94a3b8' : '#0369a1' }}>Share this code</div>
+                  <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#0369a1' }}>Share this code</div>
                   <div style={{ fontSize: 28, letterSpacing: 6, fontWeight: 700 }}>{generatedCode}</div>
                 </div>
               )}
               {linkMessage && (
-                <div style={{ marginBottom: 8, fontSize: 12, color: isDarkMode ? '#94a3b8' : '#64748b' }}>{linkMessage}</div>
+                <div style={{ marginBottom: 8, fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>{linkMessage}</div>
               )}
               {linkError && (
                 <div style={{
                   marginBottom: 12,
                   padding: 12,
                   border: '1px solid #ef4444',
-                  color: isDarkMode ? '#fca5a5' : '#991b1b',
-                  background: isDarkMode ? '#7f1d1d' : '#fee2e2',
+                  color: isDark ? '#fca5a5' : '#991b1b',
+                  background: isDark ? '#7f1d1d' : '#fee2e2',
                   borderRadius: 8
                 }}>{linkError}</div>
               )}
@@ -964,13 +927,13 @@ const ParentMode = () => {
             {/* Appearance */}
             <div style={{ 
               padding: 20, 
-              border: isDarkMode ? '1px solid #334155' : '1px solid #ddd', 
+              border: isDark ? '1px solid #334155' : '1px solid #ddd', 
               borderRadius: 8,
-              backgroundColor: isDarkMode ? '#1e293b' : 'white',
+              backgroundColor: isDark ? '#1e293b' : 'white',
               display: 'none'
             }}>
-              <h3 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Assignment Tools</h3>
-              <p style={{ color: isDarkMode ? '#94a3b8' : '#64748b', marginTop: 0 }}>Backfill missing assignment details (title/points) for older assignments.</p>
+              <h3 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Assignment Tools</h3>
+              <p style={{ color: isDark ? '#94a3b8' : '#64748b', marginTop: 0 }}>Backfill missing assignment details (title/points) for older assignments.</p>
               <button
                 onClick={async () => {
                   try {
@@ -990,11 +953,11 @@ const ParentMode = () => {
 
             <div style={{ 
               padding: 20, 
-              border: isDarkMode ? '1px solid #334155' : '1px solid #ddd', 
+              border: isDark ? '1px solid #334155' : '1px solid #ddd', 
               borderRadius: 8,
-              backgroundColor: isDarkMode ? '#1e293b' : 'white'
+              backgroundColor: isDark ? '#1e293b' : 'white'
             }}>
-              <h3 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Appearance</h3>
+              <h3 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Appearance</h3>
               <div style={{ 
                 display: 'flex', 
                 justifyContent: 'space-between', 
@@ -1002,15 +965,15 @@ const ParentMode = () => {
                 marginBottom: 16
               }}>
                 <div>
-                  <div style={{ fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#000000' }}>Dark Mode</div>
-                  <div style={{ fontSize: 14, color: isDarkMode ? '#94a3b8' : '#64748b' }}>
+                  <div style={{ fontWeight: 'bold', color: isDark ? '#f8fafc' : '#000000' }}>Dark Mode</div>
+                  <div style={{ fontSize: 14, color: isDark ? '#94a3b8' : '#64748b' }}>
                     Enable dark theme for better nighttime viewing
                   </div>
                 </div>
                 <label style={{ position: 'relative', display: 'inline-block', width: 60, height: 34 }}>
                   <input
                     type="checkbox"
-                    checked={isDarkMode}
+                    checked={isDark}
                     onChange={(e) => handleThemeChange(e.target.checked)}
                     style={{ opacity: 0, width: 0, height: 0 }}
                   />
@@ -1021,7 +984,7 @@ const ParentMode = () => {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundColor: isDarkMode ? '#0ea5e9' : '#ccc',
+                    backgroundColor: isDark ? '#0ea5e9' : '#ccc',
                     transition: '.4s',
                     borderRadius: 34
                   }}></span>
@@ -1035,7 +998,7 @@ const ParentMode = () => {
                     backgroundColor: 'white',
                     transition: '.4s',
                     borderRadius: '50%',
-                    transform: isDarkMode ? 'translateX(26px)' : 'translateX(0)'
+                    transform: isDark ? 'translateX(26px)' : 'translateX(0)'
                   }}></span>
                 </label>
               </div>
@@ -1048,8 +1011,8 @@ const ParentMode = () => {
                 marginBottom: 16
               }}>
                 <div>
-                  <div style={{ fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#000000' }}>Border Color</div>
-                  <div style={{ fontSize: 14, color: isDarkMode ? '#94a3b8' : '#64748b' }}>
+                  <div style={{ fontWeight: 'bold', color: isDark ? '#f8fafc' : '#000000' }}>Border Color</div>
+                  <div style={{ fontSize: 14, color: isDark ? '#94a3b8' : '#64748b' }}>
                     Customize the outer frame border color
                   </div>
                 </div>
@@ -1059,16 +1022,16 @@ const ParentMode = () => {
                     localStorage.setItem('borderColor', e.target.value);
                     // Apply border color change
                     const borderColor = e.target.value === 'system' 
-                      ? (isDarkMode ? '#000000' : '#ffffff')
+                      ? (isDark ? '#000000' : '#ffffff')
                       : e.target.value;
                     document.documentElement.style.setProperty('--frame-border', borderColor);
                   }}
                   style={{
                     padding: '6px 12px',
-                    border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
+                    border: isDark ? '1px solid #334155' : '1px solid #ddd',
                     borderRadius: 6,
-                    background: isDarkMode ? '#0f172a' : 'white',
-                    color: isDarkMode ? '#f8fafc' : '#000000'
+                    background: isDark ? '#0f172a' : 'white',
+                    color: isDark ? '#f8fafc' : '#000000'
                   }}
                 >
                   <option value="system">System default</option>
@@ -1084,9 +1047,9 @@ const ParentMode = () => {
             {/* Linked Children */}
             <div style={{ 
               padding: 20, 
-              border: isDarkMode ? '1px solid #334155' : '1px solid #ddd', 
+              border: isDark ? '1px solid #334155' : '1px solid #ddd', 
               borderRadius: 8,
-              backgroundColor: isDarkMode ? '#1e293b' : 'white',
+              backgroundColor: isDark ? '#1e293b' : 'white',
               marginTop: 24
             }}>
               <div style={{ 
@@ -1095,7 +1058,7 @@ const ParentMode = () => {
                 alignItems: 'center',
                 marginBottom: 16
               }}>
-                <h3 style={{ color: isDarkMode ? '#f8fafc' : '#000000', margin: 0 }}>Linked Children</h3>
+                <h3 style={{ color: isDark ? '#f8fafc' : '#000000', margin: 0 }}>Linked Children</h3>
                 <button
                   onClick={() => setShowLinkChildModal(true)}
                   style={{
@@ -1116,7 +1079,7 @@ const ParentMode = () => {
         <div style={{
           textAlign: 'center',
           padding: 24,
-          color: isDarkMode ? '#94a3b8' : '#64748b'
+          color: isDark ? '#94a3b8' : '#64748b'
         }}>
           No linked children yet.
         </div>
@@ -1132,9 +1095,9 @@ const ParentMode = () => {
                 key={child.childId}
                 style={{
                   padding: 12,
-                  border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
+                  border: isDark ? '1px solid #334155' : '1px solid #ddd',
                   borderRadius: 6,
-                  backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc'
+                  backgroundColor: isDark ? '#0f172a' : '#f8fafc'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1158,7 +1121,7 @@ const ParentMode = () => {
                       <div
                         style={{
                           fontWeight: 'bold',
-                          color: isDarkMode ? '#f8fafc' : '#000000'
+                          color: isDark ? '#f8fafc' : '#000000'
                         }}
                       >
                         {child.name}
@@ -1166,7 +1129,7 @@ const ParentMode = () => {
                       <div
                         style={{
                           fontSize: 14,
-                          color: isDarkMode ? '#94a3b8' : '#64748b'
+                          color: isDark ? '#94a3b8' : '#64748b'
                         }}
                       >
                         {child.currentPoints} points
@@ -1181,9 +1144,9 @@ const ParentMode = () => {
                       }}
                       style={{
                         padding: '6px 10px',
-                        border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
-                        background: isDarkMode ? '#0f172a' : 'white',
-                        color: isDarkMode ? '#cbd5e1' : '#374151',
+                        border: isDark ? '1px solid #334155' : '1px solid #ddd',
+                        background: isDark ? '#0f172a' : 'white',
+                        color: isDark ? '#cbd5e1' : '#374151',
                         borderRadius: 6,
                         cursor: 'pointer',
                         fontSize: 12,
@@ -1200,7 +1163,7 @@ const ParentMode = () => {
                     style={{
                       marginTop: 8,
                       paddingTop: 8,
-                      borderTop: isDarkMode ? '1px solid #334155' : '1px solid #e5e7eb',
+                      borderTop: isDark ? '1px solid #334155' : '1px solid #e5e7eb',
                       display: 'flex',
                       flexWrap: 'wrap',
                       gap: 8
@@ -1217,8 +1180,8 @@ const ParentMode = () => {
                       style={{
                         padding: '6px 10px',
                         border: '1px solid #0ea5e9',
-                        background: isDarkMode ? '#0f172a' : 'white',
-                        color: isDarkMode ? '#38bdf8' : '#0ea5e9',
+                        background: isDark ? '#0f172a' : 'white',
+                        color: isDark ? '#38bdf8' : '#0ea5e9',
                         borderRadius: 6,
                         cursor: 'pointer',
                         fontSize: 12
@@ -1234,9 +1197,9 @@ const ParentMode = () => {
                       }}
                       style={{
                         padding: '6px 10px',
-                        border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
-                        background: isDarkMode ? '#0f172a' : 'white',
-                        color: isDarkMode ? '#cbd5e1' : '#374151',
+                        border: isDark ? '1px solid #334155' : '1px solid #ddd',
+                        background: isDark ? '#0f172a' : 'white',
+                        color: isDark ? '#cbd5e1' : '#374151',
                         borderRadius: 6,
                         cursor: 'pointer',
                         fontSize: 12
@@ -1252,8 +1215,8 @@ const ParentMode = () => {
                       style={{
                         padding: '6px 10px',
                         border: '1px solid #ef4444',
-                        background: isDarkMode ? '#0f172a' : 'white',
-                        color: isDarkMode ? '#f87171' : '#ef4444',
+                        background: isDark ? '#0f172a' : 'white',
+                        color: isDark ? '#f87171' : '#ef4444',
                         borderRadius: 6,
                         cursor: 'pointer',
                         fontSize: 12
@@ -1269,16 +1232,16 @@ const ParentMode = () => {
                     style={{
                       marginTop: 8,
                       padding: 8,
-                      border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
+                      border: isDark ? '1px solid #334155' : '1px solid #ddd',
                       borderRadius: 6
                     }}
                   >
                     {assignmentsLoading[child.childId] ? (
-                      <div style={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>Loading...</div>
+                      <div style={{ color: isDark ? '#94a3b8' : '#64748b' }}>Loading...</div>
                     ) : assignmentsError[child.childId] ? (
-                      <div style={{ color: isDarkMode ? '#fca5a5' : '#991b1b' }}>{assignmentsError[child.childId]}</div>
+                      <div style={{ color: isDark ? '#fca5a5' : '#991b1b' }}>{assignmentsError[child.childId]}</div>
                     ) : assignments.length === 0 ? (
-                      <div style={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>No active assignments.</div>
+                      <div style={{ color: isDark ? '#94a3b8' : '#64748b' }}>No active assignments.</div>
                     ) : (
                       <div style={{ display: 'grid', gap: 6 }}>
                         {assignments.map((assignment) => (
@@ -1286,9 +1249,9 @@ const ParentMode = () => {
                             key={assignment.id}
                             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                           >
-                            <span style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>
+                            <span style={{ color: isDark ? '#f8fafc' : '#000000' }}>
                               {assignment.title || 'Task'}{' '}
-                              <span style={{ color: isDarkMode ? '#94a3b8' : '#64748b' }}>+{assignment.points || 0} pts</span>
+                              <span style={{ color: isDark ? '#94a3b8' : '#64748b' }}>+{assignment.points || 0} pts</span>
                             </span>
                             <button
                               onClick={async () => {
@@ -1321,13 +1284,13 @@ const ParentMode = () => {
       {/* PIN Settings */}
             <div style={{ 
               padding: 20, 
-              border: isDarkMode ? '1px solid #334155' : '1px solid #ddd', 
+              border: isDark ? '1px solid #334155' : '1px solid #ddd', 
               borderRadius: 8,
-              backgroundColor: isDarkMode ? '#1e293b' : 'white'
+              backgroundColor: isDark ? '#1e293b' : 'white'
             }}>
-              <h3 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Security</h3>
+              <h3 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Security</h3>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#000000' }}>
+                <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold', color: isDark ? '#f8fafc' : '#000000' }}>
                   New PIN
                 </label>
                 <input
@@ -1340,18 +1303,18 @@ const ParentMode = () => {
                     width: '100%',
                     maxWidth: 200,
                     padding: 12,
-                    border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
+                    border: isDark ? '1px solid #334155' : '1px solid #ddd',
                     borderRadius: 8,
                     fontSize: 16,
-                    backgroundColor: isDarkMode ? '#0f172a' : 'white',
-                    color: isDarkMode ? '#f8fafc' : '#000000',
+                    backgroundColor: isDark ? '#0f172a' : 'white',
+                    color: isDark ? '#f8fafc' : '#000000',
                     boxSizing: 'border-box'
                   }}
                 />
               </div>
               
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#000000' }}>
+                <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold', color: isDark ? '#f8fafc' : '#000000' }}>
                   Confirm New PIN
                 </label>
                 <input
@@ -1364,11 +1327,11 @@ const ParentMode = () => {
                     width: '100%',
                     maxWidth: 200,
                     padding: 12,
-                    border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
+                    border: isDark ? '1px solid #334155' : '1px solid #ddd',
                     borderRadius: 8,
                     fontSize: 16,
-                    backgroundColor: isDarkMode ? '#0f172a' : 'white',
-                    color: isDarkMode ? '#f8fafc' : '#000000',
+                    backgroundColor: isDark ? '#0f172a' : 'white',
+                    color: isDark ? '#f8fafc' : '#000000',
                     boxSizing: 'border-box'
                   }}
                 />
@@ -1378,10 +1341,10 @@ const ParentMode = () => {
                 <div style={{ 
                   marginBottom: 16, 
                   padding: 12, 
-                  backgroundColor: pinMessage.includes('successfully') ? (isDarkMode ? '#065f46' : '#dcfce7') : (isDarkMode ? '#7f1d1d' : '#fee2e2'), 
-                  border: `1px solid ${pinMessage.includes('successfully') ? (isDarkMode ? '#047857' : '#bbf7d0') : (isDarkMode ? '#b91c1c' : '#fecaca')}`, 
+                  backgroundColor: pinMessage.includes('successfully') ? (isDark ? '#065f46' : '#dcfce7') : (isDark ? '#7f1d1d' : '#fee2e2'), 
+                  border: `1px solid ${pinMessage.includes('successfully') ? (isDark ? '#047857' : '#bbf7d0') : (isDark ? '#b91c1c' : '#fecaca')}`, 
                   borderRadius: 8,
-                  color: pinMessage.includes('successfully') ? (isDarkMode ? '#6ee7b7' : '#166534') : (isDarkMode ? '#fca5a5' : '#991b1b')
+                  color: pinMessage.includes('successfully') ? (isDark ? '#6ee7b7' : '#166534') : (isDark ? '#fca5a5' : '#991b1b')
                 }}>
                   {pinMessage}
                 </div>
@@ -1391,7 +1354,7 @@ const ParentMode = () => {
                 onClick={handleChangePin}
                 style={{
                   padding: '12px 24px',
-                  background: isDarkMode ? '#0ea5e9' : '#0ea5e9',
+                  background: isDark ? '#0ea5e9' : '#0ea5e9',
                   color: 'white',
                   border: 'none',
                   borderRadius: 8,
@@ -1408,11 +1371,11 @@ const ParentMode = () => {
             {/* Reset Data */}
             <div style={{ 
               padding: 20, 
-              border: isDarkMode ? '1px solid #334155' : '1px solid #ddd', 
+              border: isDark ? '1px solid #334155' : '1px solid #ddd', 
               borderRadius: 8,
-              backgroundColor: isDarkMode ? '#1e293b' : 'white'
+              backgroundColor: isDark ? '#1e293b' : 'white'
             }}>
-              <h3 style={{ color: isDarkMode ? '#f8fafc' : '#000000' }}>Danger Zone</h3>
+              <h3 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Danger Zone</h3>
               <div style={{ 
                 display: 'flex', 
                 justifyContent: 'space-between', 
@@ -1420,8 +1383,8 @@ const ParentMode = () => {
                 marginBottom: 16
               }}>
                 <div>
-                  <div style={{ fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#000000' }}>Reset All Data</div>
-                  <div style={{ fontSize: 14, color: isDarkMode ? '#94a3b8' : '#64748b' }}>
+                  <div style={{ fontWeight: 'bold', color: isDark ? '#f8fafc' : '#000000' }}>Reset All Data</div>
+                  <div style={{ fontSize: 14, color: isDark ? '#94a3b8' : '#64748b' }}>
                     Permanently delete all quests, rewards, and progress
                   </div>
                 </div>
@@ -1472,7 +1435,7 @@ const ParentMode = () => {
           zIndex: 1000
         }}>
           <div style={{
-            backgroundColor: isDarkMode ? '#0f172a' : 'white',
+            backgroundColor: isDark ? '#0f172a' : 'white',
             padding: 24,
             borderRadius: 8,
             maxWidth: 400,
@@ -1480,7 +1443,7 @@ const ParentMode = () => {
           }}>
             <h3 style={{ 
               marginTop: 0, 
-              color: isDarkMode ? '#f8fafc' : '#000000',
+              color: isDark ? '#f8fafc' : '#000000',
               marginBottom: 20
             }}>
               Link Child App
@@ -1491,7 +1454,7 @@ const ParentMode = () => {
                 display: 'block', 
                 marginBottom: 8, 
                 fontWeight: 'bold',
-                color: isDarkMode ? '#f8fafc' : '#000000'
+                color: isDark ? '#f8fafc' : '#000000'
               }}>
                 Enter 6-digit PIN
               </label>
@@ -1507,11 +1470,11 @@ const ParentMode = () => {
                 style={{
                   width: '100%',
                   padding: 12,
-                  border: isDarkMode ? '1px solid #334155' : '1px solid #ddd',
+                  border: isDark ? '1px solid #334155' : '1px solid #ddd',
                   borderRadius: 8,
                   fontSize: 16,
-                  backgroundColor: isDarkMode ? '#1e293b' : 'white',
-                  color: isDarkMode ? '#f8fafc' : '#000000',
+                  backgroundColor: isDark ? '#1e293b' : 'white',
+                  color: isDark ? '#f8fafc' : '#000000',
                   boxSizing: 'border-box'
                 }}
               />
@@ -1539,8 +1502,8 @@ const ParentMode = () => {
                 }}
                 style={{
                   padding: '8px 16px',
-                  background: isDarkMode ? '#334155' : '#e2e8f0',
-                  color: isDarkMode ? '#f8fafc' : '#334155',
+                  background: isDark ? '#334155' : '#e2e8f0',
+                  color: isDark ? '#f8fafc' : '#334155',
                   border: 'none',
                   borderRadius: 4,
                   cursor: 'pointer'
@@ -1581,15 +1544,15 @@ const ParentMode = () => {
           zIndex: 1100
         }}>
           <div style={{
-            backgroundColor: isDarkMode ? '#0f172a' : 'white',
+            backgroundColor: isDark ? '#0f172a' : 'white',
             padding: 24,
             borderRadius: 8,
             maxWidth: 420,
             width: '90%',
-            border: isDarkMode ? '1px solid #334155' : '1px solid #e5e7eb'
+            border: isDark ? '1px solid #334155' : '1px solid #e5e7eb'
           }}>
-            <h3 style={{ marginTop: 0, color: isDarkMode ? '#f8fafc' : '#000000' }}>Unlink Child?</h3>
-            <p style={{ marginTop: 8, color: isDarkMode ? '#cbd5e1' : '#374151' }}>
+            <h3 style={{ marginTop: 0, color: isDark ? '#f8fafc' : '#000000' }}>Unlink Child?</h3>
+            <p style={{ marginTop: 8, color: isDark ? '#cbd5e1' : '#374151' }}>
               Are you sure you want to unlink <strong>{unlinkTarget.name}</strong>? You can re-link later with a new code.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
@@ -1600,8 +1563,8 @@ const ParentMode = () => {
                 }}
                 style={{
                   padding: '8px 12px',
-                  background: isDarkMode ? '#334155' : '#e2e8f0',
-                  color: isDarkMode ? '#f8fafc' : '#111827',
+                  background: isDark ? '#334155' : '#e2e8f0',
+                  color: isDark ? '#f8fafc' : '#111827',
                   border: 'none',
                   borderRadius: 6,
                   cursor: 'pointer'
@@ -1653,7 +1616,7 @@ const ParentMode = () => {
             setCurrentToast(null);
           }}
           onClose={closeCurrentToast}
-          isDarkMode={isDarkMode}
+          isDarkMode={isDark}
         />
       )}
     </div>

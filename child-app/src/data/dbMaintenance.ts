@@ -6,6 +6,7 @@ import type { Reward } from '@state/rewardTypes';
 import type { Redemption } from '@state/redemptionTypes';
 import { executeDbOperation } from './dbOperations';
 import { formatDatabaseError } from '../utils/errorMessages';
+import { queryCache } from './queryCache';
 
 type DatabaseBackupData = {
   heroes: Hero[];
@@ -87,6 +88,7 @@ export async function restoreDatabaseFromBackup(backup: DatabaseBackup): Promise
       ]);
     });
   });
+  queryCache.invalidate();
 }
 
 export async function checkDatabaseHealth(): Promise<boolean> {
