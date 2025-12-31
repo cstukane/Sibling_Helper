@@ -102,7 +102,7 @@ const Home = ({ onNavigateToRewards }: HomeProps) => {
         </div>
       </header>
       
-      <h2>Today's Quests</h2>
+      <h2>Today&apos;s Quests</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
         {boardItems.map((item) => (
           <QuestCard 

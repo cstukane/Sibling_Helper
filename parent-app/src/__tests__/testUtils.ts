@@ -5,6 +5,15 @@ import type { Quest } from '../state/questTypes';
 import type { Redemption } from '../state/redemptionTypes';
 import type { Reward } from '../state/rewardTypes';
 
+type WhereClause<T> = {
+  equals: (value: unknown) => {
+    toArray: () => Promise<T[]>;
+    and?: (fn: (item: T) => boolean) => {
+      toArray: () => Promise<T[]>;
+    };
+  };
+};
+
 // Mock IndexedDB for tests
 export const mockIndexedDB = () => {
   const mockDB: {
@@ -58,7 +67,7 @@ export const mockIndexedDB = () => {
       delete: vi.fn(() => Promise.resolve()),
       where: vi.fn((field: string) => {
         return {
-          equals: (value: any) => {
+          equals: (value: unknown) => {
             // For active quests query
             if (field === 'active') {
               return {
@@ -79,19 +88,19 @@ export const mockIndexedDB = () => {
             else {
               return {
                 toArray: () => Promise.resolve(
-                  mockDB.quests.filter(q => (q as Record<string, any>)[field] === value)
+                  mockDB.quests.filter(q => (q as Record<string, unknown>)[field] === value)
                 ),
                 and: (fn: (quest: Quest) => boolean) => {
                   return {
                     toArray: () => Promise.resolve(
-                      mockDB.quests.filter(q => (q as Record<string, any>)[field] === value && fn(q))
+                      mockDB.quests.filter(q => (q as Record<string, unknown>)[field] === value && fn(q))
                     )
                   };
                 }
               };
             }
           }
-        };
+        } as WhereClause<Quest>;
       })
     },
     board: {
@@ -111,7 +120,7 @@ export const mockIndexedDB = () => {
       delete: vi.fn(() => Promise.resolve()),
       where: vi.fn((field: string) => {
         return {
-          equals: (value: any) => {
+          equals: (value: unknown) => {
             // For date queries
             if (field === 'date') {
               return {
@@ -146,19 +155,19 @@ export const mockIndexedDB = () => {
             else {
               return {
                 toArray: () => Promise.resolve(
-                  mockDB.board.filter(b => (b as Record<string, any>)[field] === value)
+                  mockDB.board.filter(b => (b as Record<string, unknown>)[field] === value)
                 ),
                 and: (fn: (item: DailyBoardItem) => boolean) => {
                   return {
                     toArray: () => Promise.resolve(
-                      mockDB.board.filter(b => (b as Record<string, any>)[field] === value && fn(b))
+                      mockDB.board.filter(b => (b as Record<string, unknown>)[field] === value && fn(b))
                     )
                   };
                 }
               };
             }
           }
-        };
+        } as WhereClause<DailyBoardItem>;
       })
     },
     rewards: {
@@ -178,7 +187,7 @@ export const mockIndexedDB = () => {
       delete: vi.fn(() => Promise.resolve()),
       where: vi.fn((field: string) => {
         return {
-          equals: (value: any) => {
+          equals: (value: unknown) => {
             // For active rewards query
             if (field === 'active') {
               return {
@@ -191,12 +200,12 @@ export const mockIndexedDB = () => {
             else {
               return {
                 toArray: () => Promise.resolve(
-                  mockDB.rewards.filter(r => (r as Record<string, any>)[field] === value)
+                  mockDB.rewards.filter(r => (r as Record<string, unknown>)[field] === value)
                 )
               };
             }
           }
-        };
+        } as WhereClause<Reward>;
       })
     },
     redemptions: {
@@ -210,14 +219,14 @@ export const mockIndexedDB = () => {
       delete: vi.fn(() => Promise.resolve()),
       where: vi.fn((field: string) => {
         return {
-          equals: (value: any) => {
+          equals: (value: unknown) => {
             return {
               toArray: () => Promise.resolve(
-                mockDB.redemptions.filter(r => (r as Record<string, any>)[field] === value)
+                mockDB.redemptions.filter(r => (r as Record<string, unknown>)[field] === value)
               )
             };
           }
-        };
+        } as WhereClause<Redemption>;
       })
     }
   };

@@ -56,7 +56,7 @@ const ParentMode: React.FC = () => {
       setNewName(safeName);
       const updates: any = { name: safeName };
       
-      // If there's a new avatar, convert it to a data URL
+      // If there&apos;s a new avatar, convert it to a data URL
       if (selectedAvatar) {
         const reader = new FileReader();
         reader.onload = async (e) => {
@@ -295,7 +295,7 @@ const ParentMode: React.FC = () => {
             
             <div style={{ width: '100%', maxWidth: 300 }}>
               <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>
-                Child's Name
+                Child&apos;s Name
               </label>
               <input
                 type="text"
@@ -340,7 +340,7 @@ const ParentMode: React.FC = () => {
             <h3>Profile Tips</h3>
             <ul>
               <li>Use a friendly nickname that the child likes</li>
-              <li>Choose a clear photo that shows the child's face</li>
+              <li>Choose a clear photo that shows the child&apos;s face</li>
               <li>The profile will be displayed in Kid Mode</li>
             </ul>
           </div>

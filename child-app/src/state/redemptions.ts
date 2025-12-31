@@ -72,7 +72,7 @@ export function useRedemptions(heroId: string): RedemptionsHook {
     }
   };
 
-  const refreshRedemptions = async (heroId: string) => {
+  const refreshRedemptions = async () => {
     await loadRedemptions();
   };
 

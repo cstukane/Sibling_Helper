@@ -106,7 +106,7 @@ const ParentLinking = ({ onLinkSuccess, onBack }: ParentLinkingProps) => {
           // Log telemetry
           analyticsService.logLinkParentFailure(result.error || 'Unknown error');
         }
-      } catch (err) {
+      } catch (err: any) {
         // Network error - keep in queue
         if (request.retries < 3) {
           updatedRequests.push({
@@ -114,6 +114,8 @@ const ParentLinking = ({ onLinkSuccess, onBack }: ParentLinkingProps) => {
             retries: request.retries + 1
           });
         }
+        // Log the error for debugging
+        console.error('Error processing queued request:', err);
       }
     }
     
@@ -153,11 +155,11 @@ const ParentLinking = ({ onLinkSuccess, onBack }: ParentLinkingProps) => {
         // Log failure telemetry
         analyticsService.logLinkParentFailure(result.error || 'Unknown error');
       }
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
-      
+    } catch (err: any) {
+      setError(err?.message || 'Something went wrong. Please try again.');
+
       // Log error telemetry
-      analyticsService.logLinkParentFailure('Network error');
+      analyticsService.logLinkParentFailure(err?.message || 'Network error');
     } finally {
       setIsSubmitting(false);
     }
@@ -217,7 +219,7 @@ const ParentLinking = ({ onLinkSuccess, onBack }: ParentLinkingProps) => {
         }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ marginRight: 8 }}>⚠️</span>
-            <span>You're offline. We'll try again automatically.</span>
+            <span>You&apos;re offline. We&apos;ll try again automatically.</span>
           </div>
         </div>
       )}

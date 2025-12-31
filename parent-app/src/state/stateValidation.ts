@@ -1,4 +1,4 @@
-const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
+const CONTROL_CHARS = new RegExp('[\\x00-\\x1f\\x7f]', 'g');
 
 export const sanitizeText = (value: string, maxLength: number) => {
   return value.replace(CONTROL_CHARS, '').trim().slice(0, maxLength);

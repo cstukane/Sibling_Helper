@@ -1,0 +1,88 @@
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\__tests__\app.integration.test.tsx
+  20:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\__tests__\board.test.ts
+  68:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\__tests__\quests.test.ts
+  57:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\__tests__\redemptions.test.ts
+  44:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\__tests__\rewards.test.ts
+  51:24  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\__tests__\sfx.test.ts
+  33:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  34:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\__tests__\testUtils.ts
+   61:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   87:70  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  149:65  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  154:69  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  181:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:67  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  213:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  216:69  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\assets\sfx.ts
+  7:66  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\components\__tests__\PinPad.test.tsx
+  8:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  9:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\components\__tests__\ProgressBar.test.tsx
+  8:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\components\__tests__\QuestCard.test.tsx
+  8:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  9:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\components\__tests__\RewardCard.test.tsx
+  8:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\pages\Home.tsx
+  147:16  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\pages\ParentMode.tsx
+   55:22  error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  300:22  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  345:60  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\services\announceService.ts
+  3:26  error  '_a' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\services\syncService.ts
+  13:55  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  57:43  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\state\redemptions.ts
+  75:37  error  'heroId' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\state\stateValidation.ts
+  1:23  error  Unexpected control character(s) in regular expression: \x00, \x1f  no-control-regex
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\src\types\jest.d.ts
+  1:15  error  'Mock' is defined but never used          @typescript-eslint/no-unused-vars
+  4:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  4:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  4:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  9:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  9:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  9:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\ColeS\Documents\Python_Scripts\Sibling_Helper\app\types\workbox-node-fix.d.ts
+   3:13  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+   9:11  error  An interface declaring no members is equivalent to its supertype                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-empty-object-type
+  23:11  error  An empty interface declaration allows any non-nullish value, including literals like `0` and `""`.
+- If that's what you want, disable this lint rule with an inline comment or configure the 'allowInterfaces' rule option.
+- If you want a type meaning "any object", you probably want `object` instead.
+- If you want a type meaning "any value", you probably want `unknown` instead  @typescript-eslint/no-empty-object-type
+  25:1   error  Unexpected var, use let or const instead                                                                                                                                                                                                                                                                                                                                                  no-var
+
+✖ 44 problems (44 errors, 0 warnings)

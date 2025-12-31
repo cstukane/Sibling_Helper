@@ -11,6 +11,7 @@ import { LoadingIndicator, PointRequestApprovalPanel, linkingService, taskAssign
 import type { Link } from '@sibling-helper/shared';
 import LinkRequestToast from '@components/LinkRequestToast';
 import { isValidPin, sanitizePinInput, sanitizeText } from '../utils/sanitize';
+import type { Assignment } from '@sibling-helper/shared';
 
 const ParentMode = () => {
   const { hero, updateHero, loading: heroLoading, error: heroError, refreshHero } = useHero();
@@ -32,11 +33,11 @@ const ParentMode = () => {
   const [linkRefresh, setLinkRefresh] = useState(0);
   const [showUnlinkModal, setShowUnlinkModal] = useState(false);
   const [unlinkTarget, setUnlinkTarget] = useState<{ childId: string; name: string } | null>(null);
-  const [toastQueue, setToastQueue] = useState<any[]>([]);
-  const [currentToast, setCurrentToast] = useState<any | null>(null);
+  const [toastQueue, setToastQueue] = useState<Link[]>([]);
+  const [currentToast, setCurrentToast] = useState<Link | null>(null);
   const seenLinkIdsRef = useRef<Set<string>>(new Set());
   const [assignmentsOpen, setAssignmentsOpen] = useState<Record<string, boolean>>({});
-  const [assignmentsByChild, setAssignmentsByChild] = useState<Record<string, any[]>>({});
+  const [assignmentsByChild, setAssignmentsByChild] = useState<Record<string, Assignment[]>>({});
   const [assignmentsLoading, setAssignmentsLoading] = useState<Record<string, boolean>>({});
   const [assignmentsError, setAssignmentsError] = useState<Record<string, string>>({});
   const [manageOpenByChild, setManageOpenByChild] = useState<Record<string, boolean>>({});
@@ -64,8 +65,9 @@ const ParentMode = () => {
           newOnes.forEach((l) => seen.add(l.id));
           setToastQueue((q) => [...q, ...newOnes]);
         }
-      } catch (e) {
+      } catch (e: unknown) {
         // Fallback to local if remote fails
+        console.error('Error loading pending links:', e);
         setPendingLinks(linkingService.getPendingForParent(hero.id));
       }
     };
@@ -104,8 +106,8 @@ const ParentMode = () => {
       const items = await taskAssignmentService.listForParentChild(hero.id, childId);
       setAssignmentsByChild((m) => ({ ...m, [childId]: items }));
       setAssignmentsError((e) => ({ ...e, [childId]: '' }));
-    } catch (e: any) {
-      setAssignmentsError((er) => ({ ...er, [childId]: e?.message || 'Failed to load assignments' }));
+    } catch (e: unknown) {
+      setAssignmentsError((er) => ({ ...er, [childId]: (e as Error)?.message || 'Failed to load assignments' }));
     } finally {
       setAssignmentsLoading((s) => ({ ...s, [childId]: false }));
     }
@@ -146,7 +148,7 @@ const ParentMode = () => {
       const safeName = sanitizeText(newName, 60);
       if (!safeName) return;
       setNewName(safeName);
-      const updates: any = { name: safeName };
+      const updates: Partial<Hero> = { name: safeName };
       
       // If there's a new avatar, convert it to a data URL
       if (selectedAvatar) {
@@ -218,8 +220,8 @@ const ParentMode = () => {
       setGeneratedCode(code);
       setLinkError('');
       setLinkMessage('Share this code with your child. It expires in ~15 minutes.');
-    } catch (e: any) {
-      setLinkError(e?.message || 'Unable to generate code');
+    } catch (e: unknown) {
+      setLinkError((e as Error)?.message || 'Unable to generate code');
       setLinkMessage('');
     }
   };
@@ -233,8 +235,8 @@ const ParentMode = () => {
       setLinkError('');
       // Also create a local linked child entry if not present
       try {
-        const refreshed = await (linkingService.getActiveForParentRemote(hero.id) as Promise<any[]>);
-        const link = refreshed.find((l: any) => l.id === linkId);
+        const refreshed = await (linkingService.getActiveForParentRemote(hero.id) as Promise<Link[]>);
+        const link = refreshed.find((l: Link) => l.id === linkId);
         if (link) {
           await linkChild({
             childId: link.childId,
@@ -545,7 +547,7 @@ const ParentMode = () => {
             
             <div style={{ width: '100%', maxWidth: 300 }}>
               <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold', color: isDark ? '#f8fafc' : '#000000' }}>
-                Child's Name
+                Child&apos;s Name
               </label>
               <input
                 type="text"
@@ -592,7 +594,7 @@ const ParentMode = () => {
             <h3 style={{ color: isDark ? '#f8fafc' : '#000000' }}>Profile Tips</h3>
             <ul style={{ color: isDark ? '#cbd5e1' : '#000000' }}>
               <li>Use a friendly nickname that the child likes</li>
-              <li>Choose a clear photo that shows the child's face</li>
+              <li>Choose a clear photo that shows the child&apos;s face</li>
               <li>The profile will be displayed in Kid Mode</li>
             </ul>
             {/* Link Child App (moved to bottom) */}
@@ -661,8 +663,8 @@ const ParentMode = () => {
                     const res = await taskAssignmentService.migrateSnapshots(map, true);
                     alert(`Updated ${res.updated} assignment(s).`);
                     setLinkRefresh(x => x + 1);
-                  } catch (e: any) {
-                    alert(e?.message || 'Migration failed');
+                  } catch (e: unknown) {
+                    alert((e as Error)?.message || 'Migration failed');
                   }
                 }}
                 style={{ padding: '8px 12px', background: '#0ea5e9', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}
@@ -941,8 +943,8 @@ const ParentMode = () => {
                     const res = await taskAssignmentService.migrateSnapshots(map, true);
                     alert(`Updated ${res.updated} assignment(s).`);
                     setLinkRefresh(x => x + 1);
-                  } catch (e: any) {
-                    alert(e?.message || 'Migration failed');
+                  } catch (e: unknown) {
+                    alert((e as Error)?.message || 'Migration failed');
                   }
                 }}
                 style={{ padding: '8px 12px', background: '#0ea5e9', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, marginBottom: 12 }}

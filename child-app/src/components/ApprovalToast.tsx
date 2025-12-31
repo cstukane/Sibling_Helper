@@ -78,7 +78,7 @@ const ApprovalToast = ({ isVisible, onDismiss }: ApprovalToastProps) => {
             onChange={(e) => setDontShowAgain(e.target.checked)}
             style={{ marginRight: 8 }}
           />
-          <span>Don't show again</span>
+          <span>Don&apos;t show again</span>
         </label>
         
         <button
