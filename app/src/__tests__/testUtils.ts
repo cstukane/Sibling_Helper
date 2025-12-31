@@ -58,7 +58,7 @@ export const mockIndexedDB = () => {
       delete: vi.fn(() => Promise.resolve()),
       where: vi.fn((field: string) => {
         return {
-          equals: (value: any) => {
+          equals: (value: unknown) => {
             // For active quests query
             if (field === 'active') {
               return {
@@ -79,12 +79,12 @@ export const mockIndexedDB = () => {
             else {
               return {
                 toArray: () => Promise.resolve(
-                  mockDB.quests.filter(q => (q as Record<string, any>)[field] === value)
+                  mockDB.quests.filter(q => (q as Record<string, unknown>)[field] === value)
                 ),
                 and: (fn: (quest: Quest) => boolean) => {
                   return {
                     toArray: () => Promise.resolve(
-                      mockDB.quests.filter(q => (q as Record<string, any>)[field] === value && fn(q))
+                      mockDB.quests.filter(q => (q as Record<string, unknown>)[field] === value && fn(q))
                     )
                   };
                 }
@@ -111,7 +111,7 @@ export const mockIndexedDB = () => {
       delete: vi.fn(() => Promise.resolve()),
       where: vi.fn((field: string) => {
         return {
-          equals: (value: any) => {
+          equals: (value: unknown) => {
             // For date queries
             if (field === 'date') {
               return {
@@ -146,12 +146,12 @@ export const mockIndexedDB = () => {
             else {
               return {
                 toArray: () => Promise.resolve(
-                  mockDB.board.filter(b => (b as Record<string, any>)[field] === value)
+                  mockDB.board.filter(b => (b as Record<string, unknown>)[field] === value)
                 ),
                 and: (fn: (item: DailyBoardItem) => boolean) => {
                   return {
                     toArray: () => Promise.resolve(
-                      mockDB.board.filter(b => (b as Record<string, any>)[field] === value && fn(b))
+                      mockDB.board.filter(b => (b as Record<string, unknown>)[field] === value && fn(b))
                     )
                   };
                 }
@@ -178,7 +178,7 @@ export const mockIndexedDB = () => {
       delete: vi.fn(() => Promise.resolve()),
       where: vi.fn((field: string) => {
         return {
-          equals: (value: any) => {
+          equals: (value: unknown) => {
             // For active rewards query
             if (field === 'active') {
               return {
@@ -191,7 +191,7 @@ export const mockIndexedDB = () => {
             else {
               return {
                 toArray: () => Promise.resolve(
-                  mockDB.rewards.filter(r => (r as Record<string, any>)[field] === value)
+                  mockDB.rewards.filter(r => (r as Record<string, unknown>)[field] === value)
                 )
               };
             }
@@ -210,10 +210,10 @@ export const mockIndexedDB = () => {
       delete: vi.fn(() => Promise.resolve()),
       where: vi.fn((field: string) => {
         return {
-          equals: (value: any) => {
+          equals: (value: unknown) => {
             return {
               toArray: () => Promise.resolve(
-                mockDB.redemptions.filter(r => (r as Record<string, any>)[field] === value)
+                mockDB.redemptions.filter(r => (r as Record<string, unknown>)[field] === value)
               )
             };
           }

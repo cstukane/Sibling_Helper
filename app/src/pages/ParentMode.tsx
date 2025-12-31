@@ -52,7 +52,7 @@ const ParentMode: React.FC = () => {
       const safeName = sanitizeText(newName, 60);
       if (!safeName) return;
       setNewName(safeName);
-      const updates: any = { name: safeName };
+      const updates: Partial<{ name: string; avatarUrl?: string }> = { name: safeName };
       
       // If there's a new avatar, convert it to a data URL
       if (selectedAvatar) {
@@ -297,13 +297,13 @@ const ParentMode: React.FC = () => {
             
             <div style={{ width: '100%', maxWidth: 300 }}>
               <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>
-                Child's Name
+                Child&#39;s Name
               </label>
               <input
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Enter child's name"
+                placeholder="Enter child&#39;s name"
                 style={{
                   width: '100%',
                   padding: 12,
@@ -342,7 +342,7 @@ const ParentMode: React.FC = () => {
             <h3>Profile Tips</h3>
             <ul>
               <li>Use a friendly nickname that the child likes</li>
-              <li>Choose a clear photo that shows the child's face</li>
+              <li>Choose a clear photo that shows the child&#39;s face</li>
               <li>The profile will be displayed in Kid Mode</li>
             </ul>
           </div>
@@ -771,9 +771,9 @@ const ParentMode: React.FC = () => {
               }}>
                 <div>
                   <div style={{ fontWeight: 'bold' }}>Reset All Data</div>
-                  <div style={{ fontSize: 14, opacity: 0.8 }}>
-                    Permanently delete all quests, rewards, and progress
-                  </div>
+                    <div style={{ fontSize: 14, opacity: 0.8 }}>
+                      Permanently delete all quests, rewards, and progress
+                    </div>
                 </div>
                 <button
                   onClick={() => {

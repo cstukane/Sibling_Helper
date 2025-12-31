@@ -1,4 +1,5 @@
-const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
+// eslint-disable-next-line no-control-regex
+const CONTROL_CHARS = /[\x00-\x1F\x7F]/g;
 
 export const sanitizeText = (value: string, maxLength: number) => {
   return value.replace(CONTROL_CHARS, '').trim().slice(0, maxLength);

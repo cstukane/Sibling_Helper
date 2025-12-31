@@ -10,7 +10,7 @@ export type SyncError = {
 };
 
 class SyncService {
-  private syncQueue: Array<{ operation: string; data: any }> = [];
+  private syncQueue: Array<{ operation: string; data: unknown }> = [];
   private isOnline = navigator.onLine;
   private lastError: SyncError | null = null;
   private listeners = new Set<(error: SyncError | null) => void>();
@@ -54,7 +54,7 @@ class SyncService {
   }
 
   // Queue an operation for sync when online
-  queueOperation(operation: string, data: any): void {
+  queueOperation(operation: string, data: unknown): void {
     this.syncQueue.push({ operation, data });
     
     // If we're online, process immediately

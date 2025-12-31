@@ -1,12 +1,15 @@
 // Minimal globals to satisfy vite-plugin-pwa/workbox types in node config builds.
 // Avoids pulling in full WebWorker libs which conflict with DOM libs.
-type Args = any[];
+type Args = unknown[];
 
 type WorkerType = "classic" | "module";
 
 type RequestCredentials = "omit" | "same-origin" | "include";
 
-interface ExtendableEvent extends Event {}
+interface ExtendableEvent extends Event {
+  // Add a property to make the interface non-empty
+  readonly type: string;
+}
 
 interface CacheQueryOptions {
   ignoreSearch?: boolean;
@@ -20,9 +23,12 @@ interface WorkerOptions {
   credentials?: RequestCredentials;
 }
 
-interface Worker {}
+interface Worker {
+  // Add a property to make the interface non-empty
+  readonly name: string;
+}
 
-declare var Worker: {
+declare const Worker: {
   prototype: Worker;
   new (scriptURL: string | URL, options?: WorkerOptions): Worker;
 };

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = new RegExp('[\\x00-\\x1f\\x7f]', 'g');
 
 export const sanitizeText = (value: string, maxLength: number) => {

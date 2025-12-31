@@ -10,7 +10,7 @@ type RedemptionsHook = {
   loading: boolean;
   error: string | null;
   redeemReward: (heroId: string, rewardId: string, pointsSpent: number) => Promise<void>;
-  refreshRedemptions: (heroId: string) => Promise<void>;
+  refreshRedemptions: () => Promise<void>;
 };
 
 export function useRedemptions(heroId: string): RedemptionsHook {
@@ -72,7 +72,7 @@ export function useRedemptions(heroId: string): RedemptionsHook {
     }
   };
 
-  const refreshRedemptions = async (heroId: string) => {
+  const refreshRedemptions = async () => {
     await loadRedemptions();
   };
 

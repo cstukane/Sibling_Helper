@@ -1,11 +1,11 @@
-import type { Mock } from 'vitest';
-
 declare namespace jest {
-  type Mock<T = any, Y extends any[] = any> = Mock<T, Y>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type Mock = any;
 }
 
 declare namespace global {
   namespace jest {
-    type Mock<T = any, Y extends any[] = any> = Mock<T, Y>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type Mock = any;
   }
 }

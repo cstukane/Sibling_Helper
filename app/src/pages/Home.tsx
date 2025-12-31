@@ -126,25 +126,25 @@ const Home = ({ onNavigateToRewards }: HomeProps) => {
         }}>
           <span>Total XP: {hero?.progressionPoints || 0}</span>
           <span>Reward Points: {hero?.rewardPoints || 0}</span>
-          <button 
-            onClick={onNavigateToRewards}
-            style={{ 
-              background: isDark ? '#1e293b' : 'none', 
-              border: isDark ? '1px solid #334155' : 'none', 
-              color: '#0ea5e9', 
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              fontWeight: '500'
-            }}
-          >
-            Reward Shop →
-          </button>
+            <button
+              onClick={onNavigateToRewards}
+              style={{
+                background: isDark ? '#1e293b' : 'none',
+                border: isDark ? '1px solid #334155' : 'none',
+                color: '#0ea5e9',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                fontWeight: '500'
+              }}
+            >
+              Reward Shop {`→`}
+            </button>
         </div>
       </header>
       
-      <h2>Today's Quests</h2>
+      <h2>Today&#39;s Quests</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
         {boardItems.map((item) => (
           <QuestCard 
