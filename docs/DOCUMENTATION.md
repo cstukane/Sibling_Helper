@@ -66,26 +66,128 @@ Three types of tasks:
 
 ## Development
 
-### Project Structure
+### Current Project Structure (Hybrid Architecture)
+
+The project has been refactored to use a hybrid architecture with separate applications:
+
 ```
 .
-├── app/                 # Frontend application
-│   ├── src/             # Source code
-│   │   ├── components/  # React components
-│   │   ├── data/        # Database and repositories
-│   │   ├── pages/       # Page components
-│   │   ├── services/   # Services (sync, announcements)
-│   │   ├── state/       # State management hooks
-│   │   └── assets/     # Static assets
-│   ├── public/          # Public assets
-│   └── e2e/            # End-to-end tests
-├── infra/              # Infrastructure (Docker, etc.)
-├── server/             # Backend server (optional)
-├── run.bat             # Start development server
-├── test.bat            # Run tests
-├── build.bat           # Build production version
-└── README.md           # This file
+├── child-app/          # Simplified interface for children
+│   ├── src/            # Child-specific source code
+│   ├── public/         # Public assets
+│   └── e2e/           # End-to-end tests
+│
+├── parent-app/         # Full management interface for parents
+│   ├── src/            # Parent-specific source code
+│   ├── public/         # Public assets
+│   └── e2e/           # End-to-end tests
+│
+├── shared/             # Shared components and services
+│   ├── api/            # API client and server interfaces
+│   ├── components/     # Shared React components
+│   ├── data/           # Data repositories and models
+│   ├── hooks/          # Custom React hooks
+│   ├── services/       # Business logic services
+│   ├── theme/          # Theme management
+│   └── types/          # TypeScript type definitions
+│
+├── server/             # Backend server
+│   ├── src/            # Server source code
+│   │   └── index.js   # Main server with security features
+│   ├── data/           # Server data storage
+│   └── package.json    # Server dependencies
+│
+├── app/                # Original app (deprecated)
+├── backup/             # Backup of original files
+├── docs/               # Documentation
+│   ├── SECURITY.md     # Security best practices
+│   ├── TROUBLESHOOTING.md # Troubleshooting guide
+│   ├── DEPLOYMENT.md   # Deployment instructions
+│   └── DOCUMENTATION.md # This file
+│
+├── *.bat              # Batch scripts for development
+└── README.md           # Project overview
 ```
+
+### Legacy vs Current Architecture
+
+**Original Architecture (app/)**:
+- Single monolithic application
+- Combined parent and child functionality
+- Direct IndexedDB access
+- Limited security features
+
+**Current Hybrid Architecture**:
+- Separate child and parent applications
+- Shared module for common functionality
+- Centralized API server
+- Comprehensive security implementation
+- Better separation of concerns
+- Improved maintainability
+
+### Development Workflow
+
+1. **Start development servers**:
+   ```bash
+   # Start child app
+   cd child-app && pnpm dev
+
+   # Start parent app
+   cd parent-app && pnpm dev
+
+   # Start API server
+   cd server && node src/index.js
+   ```
+
+2. **Build for production**:
+   ```bash
+   # Build all applications
+   cd child-app && pnpm build
+   cd parent-app && pnpm build
+   cd shared && pnpm build
+   ```
+
+3. **Run tests**:
+   ```bash
+   # Run unit tests
+   pnpm test
+
+   # Run end-to-end tests
+   pnpm test:e2e
+   ```
+
+### Shared Module Usage
+
+The shared module provides common functionality:
+
+```typescript
+// Import shared components
+import { useHeroRepository } from 'shared/data';
+import { ThemeProvider } from 'shared/theme';
+import { apiClient } from 'shared/api';
+
+// Use shared services
+const heroRepo = useHeroRepository();
+const heroes = heroRepo.getHeroes();
+```
+
+### Data Flow
+
+```
+Child App → Shared API Client → Server API → Database
+Parent App → Shared API Client → Server API → Database
+```
+
+### Security Implementation
+
+The current architecture includes comprehensive security:
+- **JWT Authentication**: Secure API access
+- **Role-Based Authorization**: Parent/child separation
+- **Input Validation**: Prevent injection attacks
+- **Rate Limiting**: Protect against brute force
+- **Security Headers**: HTTP protection
+
+See [SECURITY.md](SECURITY.md) for detailed security documentation.
 
 ### Development Scripts
 - `pnpm dev` - Start the development server

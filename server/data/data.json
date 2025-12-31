@@ -1,5 +1,14 @@
 {
+  "schemaVersion": 1,
   "links": [
+    {
+      "id": "link_mjudraps_1xmeql",
+      "parentId": "hero-1757296521684",
+      "childId": "hero-1757545751979",
+      "status": "active",
+      "createdAt": "2025-12-31T18:59:28.384Z",
+      "updatedAt": "2025-12-31T18:59:41.172Z"
+    },
     {
       "id": "link_mferehee_xprpmq",
       "parentId": "hero-1757296521684",
@@ -10,6 +19,16 @@
     }
   ],
   "linkCodes": [
+    {
+      "code": "395216",
+      "issuedBy": "parent",
+      "parentId": "hero-1757296521684",
+      "createdAt": "2025-12-31T18:59:22.694Z",
+      "expiresAt": "2025-12-31T19:14:22.694Z",
+      "status": "consumed",
+      "usedById": "hero-1757545751979",
+      "consumedAt": "2025-12-31T18:59:28.384Z"
+    },
     {
       "code": "436955",
       "issuedBy": "parent",
@@ -23,24 +42,44 @@
   ],
   "assignedTasks": [
     {
+      "id": "assign_mjudqswi_izkwhz",
+      "parentId": "hero-1757296521684",
+      "childId": "hero-1757545751979",
+      "questId": "quest-1757296521687",
+      "title": "Bring a diaper",
+      "points": 1,
+      "assignedAt": "2025-12-31T18:59:05.298Z",
+      "active": true
+    },
+    {
+      "id": "assign_mjudqqwo_r8xaho",
+      "parentId": "hero-1757296521684",
+      "childId": "hero-1757545751979",
+      "questId": "quest-1757296521687",
+      "title": "Bring a diaper",
+      "points": 1,
+      "assignedAt": "2025-12-31T18:59:02.712Z",
+      "active": false
+    },
+    {
       "id": "assign_mfetd62m_srpcew",
       "parentId": "hero-1757296521684",
       "childId": "hero-1757545751979",
       "questId": "quest-1757296521689",
-      "assignedAt": "2025-09-11T02:53:14.878Z",
-      "active": true,
       "title": "Kind words",
-      "points": 1
+      "points": 1,
+      "assignedAt": "2025-09-11T02:53:14.878Z",
+      "active": true
     },
     {
       "id": "assign_mfesfpht_9q9dh0",
       "parentId": "hero-1757296521684",
       "childId": "hero-1757545751979",
       "questId": "quest-1757296521688",
-      "assignedAt": "2025-09-11T02:27:13.745Z",
-      "active": true,
       "title": "Quiet time (10m)",
-      "points": 2
+      "points": 2,
+      "assignedAt": "2025-09-11T02:27:13.745Z",
+      "active": true
     }
   ]
 }

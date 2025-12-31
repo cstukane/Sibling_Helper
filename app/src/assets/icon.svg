@@ -1,7 +1,0 @@
-// Simple SVG icon for the PWA
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" fill="#0ea5e9" rx="20"/>
-  <circle cx="30" cy="40" r="10" fill="white"/>
-  <circle cx="70" cy="40" r="10" fill="white"/>
-  <path d="M30 70 Q50 85 70 70" stroke="white" stroke-width="5" fill="none"/>
-</svg>
