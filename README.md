@@ -4,11 +4,14 @@ This project has been refactored to use a hybrid architecture with separate chil
 
 ## Project Structure
 
-- `/app` - Original app (will be deprecated)
 - `/child-app` - Simplified interface for children
 - `/parent-app` - Full management interface for parents
 - `/shared` - Shared components, services, and data models
-- `/backup` - Backup of original files
+- `/server` - Backend API server with security features
+- `/backup` - Backup of original files (for reference)
+- `/docs` - Comprehensive documentation
+
+**Note**: The original `/app` directory has been completely removed as the new hybrid architecture is now the sole focus of development.
 
 ## Shared Module
 

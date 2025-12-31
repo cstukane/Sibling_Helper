@@ -68,7 +68,7 @@ Three types of tasks:
 
 ### Current Project Structure (Hybrid Architecture)
 
-The project has been refactored to use a hybrid architecture with separate applications:
+The project now uses a clean hybrid architecture with separate applications:
 
 ```
 .
@@ -97,8 +97,7 @@ The project has been refactored to use a hybrid architecture with separate appli
 │   ├── data/           # Server data storage
 │   └── package.json    # Server dependencies
 │
-├── app/                # Original app (deprecated)
-├── backup/             # Backup of original files
+├── backup/             # Backup of original files (for reference)
 ├── docs/               # Documentation
 │   ├── SECURITY.md     # Security best practices
 │   ├── TROUBLESHOOTING.md # Troubleshooting guide
@@ -109,21 +108,22 @@ The project has been refactored to use a hybrid architecture with separate appli
 └── README.md           # Project overview
 ```
 
-### Legacy vs Current Architecture
+### Architecture Evolution
 
-**Original Architecture (app/)**:
-- Single monolithic application
+**Original Architecture (Removed)**:
+- Single monolithic application (formerly in app/)
 - Combined parent and child functionality
 - Direct IndexedDB access
 - Limited security features
+- **Note**: The original app directory has been completely removed
 
 **Current Hybrid Architecture**:
 - Separate child and parent applications
 - Shared module for common functionality
-- Centralized API server
-- Comprehensive security implementation
+- Centralized API server with comprehensive security
 - Better separation of concerns
 - Improved maintainability
+- Cleaner codebase without legacy code
 
 ### Development Workflow
 
