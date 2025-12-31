@@ -9,14 +9,21 @@ type HomeProps = {
 };
 
 const Home = ({ onNavigateToRewards }: HomeProps) => {
-  const { hero, loading: heroLoading } = useHero();
-  const { loading: questsLoading } = useQuests();
+  const { hero, loading: heroLoading, error: heroError, refreshHero } = useHero();
+  const { loading: questsLoading, error: questsError, refreshQuests } = useQuests();
   
   // For now, we'll use today's date and a default hero ID
   // In a real app, we would get these from context or props
   const today = new Date().toISOString().slice(0, 10);
   const heroId = hero?.id || 'hero-1';
-  const { boardItems, loading: boardLoading, completeQuest } = useBoard(heroId, today);
+  const { boardItems, loading: boardLoading, error: boardError, completeQuest, refreshBoard } = useBoard(heroId, today);
+
+  const errorMessages = [heroError, questsError, boardError].filter(Boolean) as string[];
+  const handleRetry = async () => {
+    await refreshHero();
+    await refreshQuests();
+    await refreshBoard(hero?.id || heroId, today);
+  };
 
   if (heroLoading || questsLoading || boardLoading) {
     return <div>Loading...</div>;
@@ -28,6 +35,37 @@ const Home = ({ onNavigateToRewards }: HomeProps) => {
 
   return (
     <section>
+      {errorMessages.length > 0 && (
+        <div style={{ 
+          border: '1px solid #ef4444',
+          backgroundColor: '#fee2e2',
+          color: '#7f1d1d',
+          padding: 12,
+          borderRadius: 8,
+          marginBottom: 16
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>We ran into a data error</div>
+          <div style={{ marginBottom: 12 }}>
+            {errorMessages.map((message, index) => (
+              <div key={`${message}-${index}`}>{message}</div>
+            ))}
+          </div>
+          <button
+            onClick={handleRetry}
+            style={{
+              padding: '8px 12px',
+              borderRadius: 6,
+              border: '1px solid #ef4444',
+              background: '#ef4444',
+              color: '#ffffff',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+          >
+            Retry loading
+          </button>
+        </div>
+      )}
       <header style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{

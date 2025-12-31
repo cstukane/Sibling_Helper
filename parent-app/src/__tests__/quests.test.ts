@@ -94,8 +94,9 @@ describe('useQuests', () => {
     const { result } = renderHook(() => useQuests());
 
     await waitFor(() => {
-      expect(result.current.error).toBe('Failed to load');
+      expect(result.current.error).toContain('Failed to load');
       expect(result.current.quests).toEqual([]);
     });
   });
 });
+

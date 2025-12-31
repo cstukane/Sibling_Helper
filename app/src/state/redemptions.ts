@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { redemptionRepository } from '@data/repositories/redemptionRepository';
 import type { Redemption } from './redemptionTypes';
+import { formatDatabaseError } from '../utils/errorMessages';
 
 type RedemptionsHook = {
   redemptions: Redemption[];
@@ -22,7 +23,7 @@ export function useRedemptions(heroId: string): RedemptionsHook {
       setRedemptions(redemptionsData);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load redemptions');
+      setError(formatDatabaseError('loading redemptions', err));
       setRedemptions([]);
     } finally {
       setLoading(false);
@@ -34,7 +35,7 @@ export function useRedemptions(heroId: string): RedemptionsHook {
       await redemptionRepository.create({ heroId, rewardId, pointsSpent });
       await loadRedemptions();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to redeem reward');
+      setError(formatDatabaseError('redeeming a reward', err));
     }
   };
 

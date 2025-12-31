@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { questRepository } from '@data/repositories/questRepository';
 import type { Quest } from './questTypes';
+import { formatDatabaseError } from '../utils/errorMessages';
 
 type QuestsHook = {
   quests: Quest[];
@@ -30,7 +31,7 @@ export function useQuests(): QuestsHook {
       setQuests(questsData);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load quests');
+      setError(formatDatabaseError('loading quests', err));
       setQuests([]);
     } finally {
       setLoading(false);
@@ -45,7 +46,7 @@ export function useQuests(): QuestsHook {
         setQuests(prev => [...prev, newQuest]);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add quest');
+      setError(formatDatabaseError('adding quest', err));
     }
   };
 
@@ -54,7 +55,7 @@ export function useQuests(): QuestsHook {
       await questRepository.update(id, updates);
       setQuests(prev => prev.map(quest => (quest.id === id ? { ...quest, ...updates } : quest)));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update quest');
+      setError(formatDatabaseError('updating quest', err));
     }
   };
 
@@ -63,7 +64,7 @@ export function useQuests(): QuestsHook {
       await questRepository.delete(id);
       setQuests(prev => prev.filter(quest => quest.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete quest');
+      setError(formatDatabaseError('deleting quest', err));
     }
   };
 
@@ -75,7 +76,7 @@ export function useQuests(): QuestsHook {
     try {
       return await questRepository.getRecurringChores();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get recurring chores');
+      setError(formatDatabaseError('loading recurring chores', err));
       return [];
     }
   };

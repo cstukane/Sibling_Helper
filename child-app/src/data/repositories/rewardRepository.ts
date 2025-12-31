@@ -1,4 +1,7 @@
 import { db } from '../db';
+import { executeDbOperation, safeDbOperation } from '../dbOperations';
+import { queueBackup } from '../dbMaintenance';
+import { formatDatabaseError } from '../../utils/errorMessages';
 import type { Reward } from '@state/rewardTypes';
 
 type NewRewardInput = Omit<Reward, 'id' | 'active'> & {
@@ -8,21 +11,11 @@ type NewRewardInput = Omit<Reward, 'id' | 'active'> & {
 
 export const rewardRepository = {
   async getAll(): Promise<Reward[]> {
-    try {
-      return await db.rewards.toArray();
-    } catch (error) {
-      console.error('Error getting all rewards:', error);
-      return [];
-    }
+    return safeDbOperation('loading rewards', () => db.rewards.toArray(), []);
   },
 
   async getById(id: string): Promise<Reward | undefined> {
-    try {
-      return await db.rewards.get(id);
-    } catch (error) {
-      console.error(`Error getting reward by id ${id}:`, error);
-      return undefined;
-    }
+    return safeDbOperation(`loading reward ${id}`, () => db.rewards.get(id), undefined);
   },
 
   async getActive(): Promise<Reward[]> {
@@ -31,7 +24,7 @@ export const rewardRepository = {
       const allRewards = await this.getAll();
       return allRewards.filter(reward => reward.active === true);
     } catch (error) {
-      console.error('Error getting active rewards:', error);
+      console.error(formatDatabaseError('loading active rewards', error), error);
       return [];
     }
   },
@@ -48,28 +41,31 @@ export const rewardRepository = {
         active: reward.active !== undefined ? reward.active : true
       };
 
-      await db.rewards.add(rewardToSave);
+      await executeDbOperation('creating reward', () => db.rewards.add(rewardToSave));
+      queueBackup();
       return id;
     } catch (error) {
-      console.error('Error creating reward:', error);
+      console.error(formatDatabaseError('creating reward', error), error);
       throw error;
     }
   },
 
   async update(id: string, updates: Partial<Reward>): Promise<void> {
     try {
-      await db.rewards.update(id, updates);
+      await executeDbOperation('updating reward', () => db.rewards.update(id, updates));
+      queueBackup();
     } catch (error) {
-      console.error(`Error updating reward ${id}:`, error);
+      console.error(formatDatabaseError(`updating reward ${id}`, error), error);
       throw error;
     }
   },
 
   async delete(id: string): Promise<void> {
     try {
-      await db.rewards.delete(id);
+      await executeDbOperation('deleting reward', () => db.rewards.delete(id));
+      queueBackup();
     } catch (error) {
-      console.error(`Error deleting reward ${id}:`, error);
+      console.error(formatDatabaseError(`deleting reward ${id}`, error), error);
       throw error;
     }
   },
@@ -96,7 +92,7 @@ export const rewardRepository = {
         }
       }
     } catch (error) {
-      console.error('Error initializing default rewards:', error);
+      console.error(formatDatabaseError('initializing default rewards', error), error);
     }
   }
 };

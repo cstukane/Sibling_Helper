@@ -1,5 +1,8 @@
 import { db } from '../db';
 import { heroRepository } from './heroRepository';
+import { executeDbOperation, safeDbOperation } from '../dbOperations';
+import { queueBackup } from '../dbMaintenance';
+import { formatDatabaseError } from '../../utils/errorMessages';
 import type { DailyBoardItem } from '@state/boardTypes';
 
 type NewBoardItemInput = Omit<DailyBoardItem, 'id' | 'completedAt'> & {
@@ -9,43 +12,32 @@ type NewBoardItemInput = Omit<DailyBoardItem, 'id' | 'completedAt'> & {
 
 export const boardRepository = {
   async getAll(): Promise<DailyBoardItem[]> {
-    try {
-      return await db.board.toArray();
-    } catch (error) {
-      console.error('Error getting all board items:', error);
-      return [];
-    }
+    return safeDbOperation('loading board items', () => db.board.toArray(), []);
   },
 
   async getByDate(date: string): Promise<DailyBoardItem[]> {
-    try {
-      return await db.board.where('date').equals(date).toArray();
-    } catch (error) {
-      console.error(`Error getting board items by date ${date}:`, error);
-      return [];
-    }
+    return safeDbOperation(
+      `loading board items for ${date}`,
+      () => db.board.where('date').equals(date).toArray(),
+      []
+    );
   },
 
   async getByHeroAndDate(heroId: string, date: string): Promise<DailyBoardItem[]> {
-    try {
-      return await db.board
-        .where('heroId')
-        .equals(heroId)
-        .and(item => item.date === date)
-        .toArray();
-    } catch (error) {
-      console.error(`Error getting board items for hero ${heroId} on date ${date}:`, error);
-      return [];
-    }
+    return safeDbOperation(
+      `loading board items for hero ${heroId} on ${date}`,
+      () =>
+        db.board
+          .where('heroId')
+          .equals(heroId)
+          .and(item => item.date === date)
+          .toArray(),
+      []
+    );
   },
 
   async getById(id: string): Promise<DailyBoardItem | undefined> {
-    try {
-      return await db.board.get(id);
-    } catch (error) {
-      console.error(`Error getting board item by id ${id}:`, error);
-      return undefined;
-    }
+    return safeDbOperation(`loading board item ${id}`, () => db.board.get(id), undefined);
   },
 
   async create(boardItem: NewBoardItemInput): Promise<string> {
@@ -60,28 +52,31 @@ export const boardRepository = {
         completedAt: boardItem.completedAt || null
       };
 
-      await db.board.add(boardItemToSave);
+      await executeDbOperation('creating board item', () => db.board.add(boardItemToSave));
+      queueBackup();
       return id;
     } catch (error) {
-      console.error('Error creating board item:', error);
+      console.error(formatDatabaseError('creating board item', error), error);
       throw error;
     }
   },
 
   async update(id: string, updates: Partial<DailyBoardItem>): Promise<void> {
     try {
-      await db.board.update(id, updates);
+      await executeDbOperation('updating board item', () => db.board.update(id, updates));
+      queueBackup();
     } catch (error) {
-      console.error(`Error updating board item ${id}:`, error);
+      console.error(formatDatabaseError(`updating board item ${id}`, error), error);
       throw error;
     }
   },
 
   async delete(id: string): Promise<void> {
     try {
-      await db.board.delete(id);
+      await executeDbOperation('deleting board item', () => db.board.delete(id));
+      queueBackup();
     } catch (error) {
-      console.error(`Error deleting board item ${id}:`, error);
+      console.error(formatDatabaseError(`deleting board item ${id}`, error), error);
       throw error;
     }
   },
@@ -104,7 +99,7 @@ export const boardRepository = {
         await heroRepository.earnPointsFromQuest(boardItem.heroId, quest.points);
       }
     } catch (error) {
-      console.error(`Error marking board item ${id} as completed:`, error);
+      console.error(formatDatabaseError(`marking board item ${id} as completed`, error), error);
       throw error;
     }
   },
@@ -134,7 +129,7 @@ export const boardRepository = {
         }
       }
     } catch (error) {
-      console.error(`Error generating daily board for hero ${heroId} on date ${date}:`, error);
+      console.error(formatDatabaseError(`generating daily board for hero ${heroId} on ${date}`, error), error);
       throw error;
     }
   }

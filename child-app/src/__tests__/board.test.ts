@@ -87,8 +87,9 @@ describe('useBoard', () => {
     const { result } = renderHook(() => useBoard(heroId, date));
 
     await waitFor(() => {
-      expect(result.current.error).toBe('Failed to load');
+      expect(result.current.error).toContain('Failed to load');
       expect(result.current.boardItems).toEqual([]);
     });
   });
 });
+

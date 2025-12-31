@@ -1,22 +1,8 @@
 import type { AssignedTask } from '../types/assignmentTypes';
 import { getEnv } from './env';
+import { apiRequest, startOfflineQueueProcessor } from '../api/request';
 
-async function apiFetch(path: string, init?: RequestInit) {
-  const { API_BASE_URL } = getEnv();
-  const base = (API_BASE_URL || '').replace(/\/+$/, '');
-  const p = path.startsWith('/') ? path : `/${path}`;
-  const url = `${base}${p}`;
-  const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...init });
-  if (!res.ok) {
-    let msg = `Request failed: ${res.status}`;
-    try {
-      const data = await res.json();
-      if (data?.error) msg = data.error;
-    } catch {}
-    throw new Error(msg);
-  }
-  return res.json();
-}
+startOfflineQueueProcessor();
 
 const LOCAL_KEY = 'assigned_tasks';
 
@@ -40,7 +26,14 @@ export const taskAssignmentService = {
     const { parentId, childId, questId, title, points } = input;
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
-      return apiFetch('/api/tasks/assign', { method: 'POST', body: JSON.stringify({ parentId, childId, questId, title, points }) });
+      try {
+        return await apiRequest('/api/tasks/assign', {
+          method: 'POST',
+          body: JSON.stringify({ parentId, childId, questId, title, points })
+        }, { queueIfOffline: true });
+      } catch (e: any) {
+        if (!e?.queued) throw e;
+      }
     }
     const now = new Date().toISOString();
     const all = readLocal();
@@ -52,7 +45,11 @@ export const taskAssignmentService = {
   async listForChild(childId: string): Promise<AssignedTask[]> {
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
-      return apiFetch(`/api/children/${encodeURIComponent(childId)}/tasks`, { method: 'GET' });
+      try {
+        return await apiRequest(`/api/children/${encodeURIComponent(childId)}/tasks`, { method: 'GET' }, { cacheTtlMs: 5000 });
+      } catch {
+        return readLocal().filter((t) => t.childId === childId && t.active);
+      }
     }
     return readLocal().filter((t) => t.childId === childId && t.active);
   },
@@ -60,7 +57,15 @@ export const taskAssignmentService = {
   async listForParentChild(parentId: string, childId: string): Promise<AssignedTask[]> {
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
-      return apiFetch(`/api/parents/${encodeURIComponent(parentId)}/children/${encodeURIComponent(childId)}/tasks`, { method: 'GET' });
+      try {
+        return await apiRequest(
+          `/api/parents/${encodeURIComponent(parentId)}/children/${encodeURIComponent(childId)}/tasks`,
+          { method: 'GET' },
+          { cacheTtlMs: 5000 }
+        );
+      } catch {
+        return readLocal().filter((t) => t.childId === childId && t.parentId === parentId && t.active);
+      }
     }
     return readLocal().filter((t) => t.childId === childId && t.parentId === parentId && t.active);
   },
@@ -68,8 +73,12 @@ export const taskAssignmentService = {
   async unassign(id: string): Promise<void> {
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
-      await apiFetch(`/api/tasks/${encodeURIComponent(id)}/unassign`, { method: 'POST' });
-      return;
+      try {
+        await apiRequest(`/api/tasks/${encodeURIComponent(id)}/unassign`, { method: 'POST' }, { queueIfOffline: true });
+        return;
+      } catch (e: any) {
+        if (!e?.queued) throw e;
+      }
     }
     const all = readLocal();
     writeLocal(all.map((t) => (t.id === id ? { ...t, active: false } : t)));
@@ -78,7 +87,14 @@ export const taskAssignmentService = {
   async migrateSnapshots(questMap: Record<string, { title: string; points: number }>, onlyMissing = true): Promise<{ updated: number }>{
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
-      return apiFetch('/api/assignments/migrate', { method: 'POST', body: JSON.stringify({ questMap, onlyMissing }) });
+      try {
+        return await apiRequest('/api/assignments/migrate', {
+          method: 'POST',
+          body: JSON.stringify({ questMap, onlyMissing })
+        }, { queueIfOffline: true });
+      } catch (e: any) {
+        if (!e?.queued) throw e;
+      }
     }
     // Local fallback: update local storage entries
     const all = readLocal();

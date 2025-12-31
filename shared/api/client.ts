@@ -6,6 +6,7 @@ import { pointRequestService } from '../services/pointRequestService';
 import { questService } from '../services/questService';
 import { heroService } from '../services/heroService';
 import { boardService } from '../services/boardService';
+import { cachedCall, withRetry } from './serviceReliability';
 import type { PointRequest } from '../types/pointRequestTypes';
 import type { Quest } from '../types/questTypes';
 import type { Hero } from '../types/heroTypes';
@@ -14,69 +15,69 @@ export const apiClient = {
   // Point Request endpoints
   pointRequests: {
     create: (data: Omit<PointRequest, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => 
-      pointRequestService.createPointRequest(data),
+      withRetry('create point request', () => pointRequestService.createPointRequest(data)),
     
     approve: (id: string) => 
-      pointRequestService.approvePointRequest(id),
+      withRetry('approve point request', () => pointRequestService.approvePointRequest(id)),
       
     decline: (id: string) => 
-      pointRequestService.declinePointRequest(id),
+      withRetry('decline point request', () => pointRequestService.declinePointRequest(id)),
       
     getPending: () => 
-      pointRequestService.getPendingRequests()
+      cachedCall('pointRequests:pending', 5000, () => pointRequestService.getPendingRequests())
   },
 
   // Quest endpoints
   quests: {
     getAll: () => 
-      questService.getAllQuests(),
+      cachedCall('quests:all', 5000, () => questService.getAllQuests()),
       
     getActive: () => 
-      questService.getActiveQuests(),
+      cachedCall('quests:active', 5000, () => questService.getActiveQuests()),
       
     getRecurringChores: () => 
-      questService.getRecurringChores(),
+      cachedCall('quests:recurring', 5000, () => questService.getRecurringChores()),
       
     create: (data: Omit<Quest, 'id' | 'createdAt' | 'updatedAt'>) => 
-      questService.createQuest(data),
+      withRetry('create quest', () => questService.createQuest(data)),
       
     update: (id: string, updates: Partial<Quest>) => 
-      questService.updateQuest(id, updates),
+      withRetry('update quest', () => questService.updateQuest(id, updates)),
       
     delete: (id: string) => 
-      questService.deleteQuest(id)
+      withRetry('delete quest', () => questService.deleteQuest(id))
   },
 
   // Hero endpoints
   heroes: {
     getAll: () => 
-      heroService.getAllHeroes(),
+      cachedCall('heroes:all', 5000, () => heroService.getAllHeroes()),
       
     getById: (id: string) => 
-      heroService.getHeroById(id),
+      cachedCall(`heroes:${id}`, 5000, () => heroService.getHeroById(id)),
       
     create: (data: Omit<Hero, 'id' | 'createdAt' | 'updatedAt'>) => 
-      heroService.createHero(data),
+      withRetry('create hero', () => heroService.createHero(data)),
       
     update: (id: string, updates: Partial<Hero>) => 
-      heroService.updateHero(id, updates),
+      withRetry('update hero', () => heroService.updateHero(id, updates)),
       
     delete: (id: string) => 
-      heroService.deleteHero(id)
+      withRetry('delete hero', () => heroService.deleteHero(id))
   },
 
   // Board endpoints
   board: {
     getByDate: (date: string) => 
-      boardService.getBoardItemsByDate(date),
+      cachedCall(`board:date:${date}`, 5000, () => boardService.getBoardItemsByDate(date)),
       
     getByHeroAndDate: (heroId: string, date: string) => 
-      boardService.getBoardItemsByHeroAndDate(heroId, date),
+      cachedCall(`board:${heroId}:${date}`, 5000, () => boardService.getBoardItemsByHeroAndDate(heroId, date)),
       
     markCompleted: (boardItemId: string) => 
-      boardService.markQuestCompleted(boardItemId),
+      withRetry('mark board item completed', () => boardService.markQuestCompleted(boardItemId)),
       
     generateDaily: (heroId: string, date: string, questIds: string[]) => 
-      boardService.generateDailyBoard(heroId, date, questIds)
+      withRetry('generate daily board', () => boardService.generateDailyBoard(heroId, date, questIds))
   }
 };

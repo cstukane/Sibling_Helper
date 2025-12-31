@@ -70,8 +70,9 @@ describe('useRedemptions', () => {
     const { result } = renderHook(() => useRedemptions(heroId));
 
     await waitFor(() => {
-      expect(result.current.error).toBe('Failed to load');
+      expect(result.current.error).toContain('Failed to load');
       expect(result.current.redemptions).toEqual([]);
     });
   });
 });
+

@@ -11,29 +11,14 @@ const ParentModeToggle: React.FC<ParentModeToggleProps> = ({ onParentModeChange 
   const [showPinPad, setShowPinPad] = useState(false);
   const [isParentMode, setIsParentMode] = useState(false);
 
-  const handlePinEntered = (pin: string) => {
-    console.log('PIN entered:', pin);
-    
-    // Initialize default PIN if not set
-    pinManager.initializeDefaultPin();
-    
-    // Check if PIN is set
-    const isSet = pinManager.isPinSet();
-    console.log('PIN is set:', isSet);
-    
-    // Get stored PIN
-    const storedPin = localStorage.getItem('parent_pin');
-    console.log('Stored PIN:', storedPin);
-    
-    if (pinManager.validatePin(pin)) {
-      console.log('PIN validation successful');
+  const handlePinEntered = async (pin: string) => {
+    await pinManager.initializeDefaultPin();
+    if (await pinManager.validatePin(pin)) {
       const newMode = !isParentMode;
       setIsParentMode(newMode);
       onParentModeChange(newMode);
       setShowPinPad(false);
     } else {
-      console.log('PIN validation failed');
-      // In a real app, we might want to show an error or limit attempts
       setShowPinPad(false);
     }
   };
@@ -42,16 +27,12 @@ const ParentModeToggle: React.FC<ParentModeToggleProps> = ({ onParentModeChange 
     setShowPinPad(false);
   };
 
-  const toggleParentMode = () => {
+  const toggleParentMode = async () => {
     if (isParentMode) {
-      // Exit parent mode directly
-      console.log('Exiting parent mode');
       setIsParentMode(false);
       onParentModeChange(false);
     } else {
-      // Enter parent mode requires PIN
-      console.log('Entering parent mode - showing PIN pad');
-      pinManager.initializeDefaultPin(); // Ensure a PIN exists
+      await pinManager.initializeDefaultPin();
       setShowPinPad(true);
     }
   };

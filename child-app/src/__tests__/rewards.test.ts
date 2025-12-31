@@ -85,8 +85,9 @@ describe('useRewards', () => {
     const { result } = renderHook(() => useRewards());
 
     await waitFor(() => {
-      expect(result.current.error).toBe('Failed to load');
+      expect(result.current.error).toContain('Failed to load');
       expect(result.current.rewards).toEqual([]);
     });
   });
 });
+

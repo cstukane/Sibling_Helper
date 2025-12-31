@@ -3,6 +3,7 @@ import { boardRepository } from '@data/repositories/boardRepository';
 import { questRepository } from '@data/repositories/questRepository';
 import type { DailyBoardItem } from './boardTypes';
 import type { Quest } from './questTypes';
+import { formatDatabaseError } from '../utils/errorMessages';
 
 type BoardHook = {
   boardItems: (DailyBoardItem & { quest?: Quest })[];
@@ -33,7 +34,7 @@ export function useBoard(heroId: string, date: string): BoardHook {
       setBoardItems(itemsWithQuests);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load board');
+      setError(formatDatabaseError('loading today\'s board', err));
       setBoardItems([]);
     } finally {
       setLoading(false);
@@ -45,7 +46,7 @@ export function useBoard(heroId: string, date: string): BoardHook {
       await boardRepository.markCompleted(boardItemId);
       await loadBoard();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete quest');
+      setError(formatDatabaseError('completing a quest', err));
     }
   };
 
@@ -66,7 +67,7 @@ export function useBoard(heroId: string, date: string): BoardHook {
       
       await loadBoard();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh board');
+      setError(formatDatabaseError('refreshing the board', err));
     }
   };
 

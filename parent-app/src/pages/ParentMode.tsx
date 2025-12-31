@@ -10,11 +10,12 @@ import { pinManager } from '@state/pinManager';
 import { PointRequestApprovalPanel, linkingService, taskAssignmentService } from '@sibling-helper/shared';
 import type { Link } from '@sibling-helper/shared';
 import LinkRequestToast from '@components/LinkRequestToast';
+import { isValidPin, sanitizePinInput, sanitizeText } from '../utils/sanitize';
 
 const ParentMode = () => {
-  const { hero, updateHero, loading: heroLoading } = useHero();
-  const { quests } = useQuests();
-  const { rewards, addReward, updateReward, deleteReward } = useRewards();
+  const { hero, updateHero, loading: heroLoading, error: heroError, refreshHero } = useHero();
+  const { quests, error: questsError, refreshQuests } = useQuests();
+  const { rewards, addReward, updateReward, deleteReward, error: rewardsError, refreshRewards } = useRewards();
   const { linkedChildren, linkChild, unlinkChild, updateChild } = useLinkedChildren();
   const [activeTab, setActiveTab] = useState<'profile' | 'tasks' | 'rewards' | 'requests' | 'settings'>('profile');
   const [editingReward, setEditingReward] = useState<string | null>(null);
@@ -40,6 +41,13 @@ const ParentMode = () => {
   const [assignmentsError, setAssignmentsError] = useState<Record<string, string>>({});
   const [manageOpenByChild, setManageOpenByChild] = useState<Record<string, boolean>>({});
   const [pendingLinks, setPendingLinks] = useState<Link[]>([]);
+  const dataErrors = [heroError, questsError, rewardsError].filter(Boolean) as string[];
+
+  const handleRetryData = async () => {
+    await refreshHero();
+    await refreshQuests();
+    await refreshRewards();
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -162,7 +170,10 @@ const ParentMode = () => {
     if (!hero) return;
     
     try {
-      const updates: any = { name: newName };
+      const safeName = sanitizeText(newName, 60);
+      if (!safeName) return;
+      setNewName(safeName);
+      const updates: any = { name: safeName };
       
       // If there's a new avatar, convert it to a data URL
       if (selectedAvatar) {
@@ -215,7 +226,7 @@ const ParentMode = () => {
     }
   };
 
-  const handleChangePin = () => {
+  const handleChangePin = async () => {
     if (!newPin || !confirmPin) {
       setPinMessage('Please fill in all fields');
       return;
@@ -226,13 +237,17 @@ const ParentMode = () => {
       return;
     }
     
-    if (newPin.length !== 4) {
+    if (!isValidPin(newPin)) {
       setPinMessage('PIN must be 4 digits');
       return;
     }
     
     // Change PIN
-    pinManager.setPin(newPin);
+    const didSet = await pinManager.setPin(newPin);
+    if (!didSet) {
+      setPinMessage('PIN must be 4 digits');
+      return;
+    }
     setPinMessage('PIN changed successfully!');
     
     // Clear form
@@ -324,6 +339,38 @@ const ParentMode = () => {
       }}>
         Parent Mode
       </h1>
+
+      {dataErrors.length > 0 && (
+        <div style={{ 
+          border: '1px solid #ef4444',
+          backgroundColor: '#fee2e2',
+          color: '#7f1d1d',
+          padding: 12,
+          borderRadius: 8,
+          margin: '12px 16px'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>We ran into a data error</div>
+          <div style={{ marginBottom: 12 }}>
+            {dataErrors.map((message, index) => (
+              <div key={`${message}-${index}`}>{message}</div>
+            ))}
+          </div>
+          <button
+            onClick={handleRetryData}
+            style={{
+              padding: '8px 12px',
+              borderRadius: 6,
+              border: '1px solid #ef4444',
+              background: '#ef4444',
+              color: '#ffffff',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}
+          >
+            Retry loading
+          </button>
+        </div>
+      )}
       
       {/* Scrollable header with tabs */}
       <div style={{ 
@@ -1162,8 +1209,9 @@ const ParentMode = () => {
                     <button
                       onClick={() => {
                         const newName = prompt('Enter new name:', child.name);
-                        if (newName && newName !== child.name) {
-                          updateChild(child.childId, { name: newName });
+                        const safeName = newName ? sanitizeText(newName, 60) : '';
+                        if (safeName && safeName !== child.name) {
+                          updateChild(child.childId, { name: safeName });
                         }
                       }}
                       style={{
@@ -1285,7 +1333,7 @@ const ParentMode = () => {
                 <input
                   type="password"
                   value={newPin}
-                  onChange={(e) => setNewPin(e.target.value)}
+                  onChange={(e) => setNewPin(sanitizePinInput(e.target.value))}
                   placeholder="Enter new 4-digit PIN"
                   maxLength={4}
                   style={{
@@ -1309,7 +1357,7 @@ const ParentMode = () => {
                 <input
                   type="password"
                   value={confirmPin}
-                  onChange={(e) => setConfirmPin(e.target.value)}
+                  onChange={(e) => setConfirmPin(sanitizePinInput(e.target.value))}
                   placeholder="Confirm new PIN"
                   maxLength={4}
                   style={{

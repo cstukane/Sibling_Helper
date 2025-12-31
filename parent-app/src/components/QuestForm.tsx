@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useId } from 'react';
 import type { Quest } from '@state/questTypes';
+import { sanitizeNumber, sanitizeOptionalText, sanitizeText } from '../utils/sanitize';
 
 type QuestFormProps = {
   quest?: Quest;
@@ -33,12 +34,16 @@ const QuestForm: React.FC<QuestFormProps> = ({ quest, onSave, onCancel }) => {
     e.preventDefault();
     
     const recurrence = recurrenceType === 'none' ? undefined : { type: recurrenceType };
-    
+    const safeTitle = sanitizeText(title, 80);
+    if (!safeTitle) return;
+    const safeDescription = sanitizeOptionalText(description, 240);
+    const safePoints = sanitizeNumber(points, 1, 10, 1);
+
     onSave({
-      title,
-      description: description || null,
+      title: safeTitle,
+      description: safeDescription || null,
       category,
-      points: parseInt(points) || 1,
+      points: safePoints,
       active,
       recurrence
     });

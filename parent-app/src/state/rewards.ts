@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { rewardRepository } from '@data/repositories/rewardRepository';
 import type { Reward } from './rewardTypes';
+import { formatDatabaseError } from '../utils/errorMessages';
 
 export type { Reward };
 
@@ -31,7 +32,7 @@ export function useRewards(): RewardsHook {
       setRewards(rewardsData);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load rewards');
+      setError(formatDatabaseError('loading rewards', err));
       setRewards([]);
     } finally {
       setLoading(false);
@@ -46,7 +47,7 @@ export function useRewards(): RewardsHook {
         setRewards(prev => [...prev, newReward]);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add reward');
+      setError(formatDatabaseError('adding reward', err));
     }
   };
 
@@ -55,7 +56,7 @@ export function useRewards(): RewardsHook {
       await rewardRepository.update(id, updates);
       setRewards(prev => prev.map(reward => (reward.id === id ? { ...reward, ...updates } : reward)));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update reward');
+      setError(formatDatabaseError('updating reward', err));
     }
   };
 
@@ -64,7 +65,7 @@ export function useRewards(): RewardsHook {
       await rewardRepository.delete(id);
       setRewards(prev => prev.filter(reward => reward.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete reward');
+      setError(formatDatabaseError('deleting reward', err));
     }
   };
 

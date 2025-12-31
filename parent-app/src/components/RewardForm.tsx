@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Reward } from '@state/rewards';
+import { sanitizeNumber, sanitizeOptionalText, sanitizeText } from '../utils/sanitize';
 
 type RewardFormProps = {
   reward?: Reward;
@@ -24,10 +25,14 @@ const RewardForm: React.FC<RewardFormProps> = ({ reward, onSave, onCancel }) => 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const safeTitle = sanitizeText(title, 80);
+    if (!safeTitle) return;
+    const safeDescription = sanitizeOptionalText(description, 240);
+    const safeCost = sanitizeNumber(cost, 1, 10000, 1);
     onSave({
-      title,
-      description: description || null,
-      cost: parseInt(cost) || 1,
+      title: safeTitle,
+      description: safeDescription || null,
+      cost: safeCost,
       active
     });
   };

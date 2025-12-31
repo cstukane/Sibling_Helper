@@ -19,14 +19,14 @@ type HomeProps = {
 };
 
 const Home = ({ onNavigateToRewards, onNavigateToSettings, onNavigateToPending }: HomeProps) => {
-  const { hero, loading: heroLoading } = useHero();
-  const { quests, loading: questsLoading } = useQuests();
+  const { hero, loading: heroLoading, error: heroError, refreshHero } = useHero();
+  const { quests, loading: questsLoading, error: questsError, refreshQuests } = useQuests();
   
   // For now, we'll use today's date and a default hero ID
   // In a real app, we would get these from context or props
   const today = new Date().toISOString().slice(0, 10);
   const heroId = hero?.id || 'hero-1';
-  const { boardItems, loading: boardLoading } = useBoard(heroId, today);
+  const { boardItems, loading: boardLoading, error: boardError, refreshBoard } = useBoard(heroId, today);
   
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [selectedQuest, setSelectedQuest] = useState<{title: string, points: number, id: string} | null>(null);
@@ -34,6 +34,13 @@ const Home = ({ onNavigateToRewards, onNavigateToSettings, onNavigateToPending }
   const [showApprovalToast, setShowApprovalToast] = useState(false);
   const [assigned, setAssigned] = useState<AssignedTask[]>([]);
   const [assignedError, setAssignedError] = useState('');
+  const errorMessages = [heroError, questsError, boardError].filter(Boolean) as string[];
+
+  const handleRetry = async () => {
+    await refreshHero();
+    await refreshQuests();
+    await refreshBoard(hero?.id || heroId, today);
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -114,6 +121,34 @@ const Home = ({ onNavigateToRewards, onNavigateToSettings, onNavigateToPending }
 
   return (
     <section>
+      {errorMessages.length > 0 && (
+        <div style={{ 
+          border: '1px solid var(--state-error)',
+          backgroundColor: 'var(--bg-surface-overlay)',
+          color: 'var(--state-error)',
+          padding: 12,
+          borderRadius: 8,
+          marginBottom: 16
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>We ran into a data error</div>
+          <div style={{ marginBottom: 12 }}>
+            {errorMessages.map((message, index) => (
+              <div key={`${message}-${index}`}>{message}</div>
+            ))}
+          </div>
+          <button
+            onClick={handleRetry}
+            className="themed-button primary"
+            style={{
+              padding: '8px 12px',
+              borderRadius: 6,
+              fontWeight: 'bold'
+            }}
+          >
+            Retry loading
+          </button>
+        </div>
+      )}
       <header style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <HamburgerMenu menuItems={menuItems} />

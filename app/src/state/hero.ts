@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { heroRepository } from '@data/repositories/heroRepository';
 import type { Hero } from './heroTypes';
+import { formatDatabaseError } from '../utils/errorMessages';
 
 type HeroHook = {
   hero: Hero | null;
@@ -22,7 +23,7 @@ export function useHero(): HeroHook {
       setHero(heroData);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load hero');
+      setError(formatDatabaseError('loading hero', err));
       setHero(null);
     } finally {
       setLoading(false);
@@ -37,7 +38,7 @@ export function useHero(): HeroHook {
       const updatedHero = { ...hero, ...updates };
       setHero(updatedHero);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update hero');
+      setError(formatDatabaseError('updating hero', err));
     }
   };
 

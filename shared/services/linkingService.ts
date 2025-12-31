@@ -1,28 +1,11 @@
 import type { Link, LinkCode, LinkLimits } from '../types/linkingTypes';
 import { getEnv } from './env';
+import { apiRequest, startOfflineQueueProcessor } from '../api/request';
 
 const LINKS_KEY = 'links';
 const LINK_CODES_KEY = 'link_codes';
 
-async function apiFetch(path: string, init?: RequestInit) {
-  const { API_BASE_URL } = getEnv();
-  const base = (API_BASE_URL || '').replace(/\/+$/, '');
-  const p = path.startsWith('/') ? path : `/${path}`;
-  const url = `${base}${p}`;
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  });
-  if (!res.ok) {
-    let msg = `Request failed: ${res.status}`;
-    try {
-      const data = await res.json();
-      if (data?.error) msg = data.error;
-    } catch {}
-    throw new Error(msg);
-  }
-  return res.json();
-}
+startOfflineQueueProcessor();
 
 function readLinks(): Link[] {
   try {
@@ -148,7 +131,10 @@ export const linkingService = {
   async generateCodeForParentAsync(parentId: string, ttlMinutes = 15): Promise<{ code: string; expiresAt?: string }>{
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
-      return apiFetch('/api/link-codes', { method: 'POST', body: JSON.stringify({ parentId, ttlMinutes }) });
+      return apiRequest('/api/link-codes', {
+        method: 'POST',
+        body: JSON.stringify({ parentId, ttlMinutes })
+      }, { queueIfOffline: true });
     }
     return this.generateCodeForParent(parentId, ttlMinutes);
   },
@@ -167,9 +153,15 @@ export const linkingService = {
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
       try {
-        const res = await apiFetch('/api/links/enter-code', { method: 'POST', body: JSON.stringify({ childId, code }) });
+        const res = await apiRequest('/api/links/enter-code', {
+          method: 'POST',
+          body: JSON.stringify({ childId, code })
+        }, { queueIfOffline: true });
         return { pending: !!res.pending, linkId: res.linkId };
       } catch (e: any) {
+        if (e?.queued) {
+          return { pending: false, error: 'Offline: request queued. Try again when online.' };
+        }
         return { pending: false, error: e?.message || 'Invalid or expired code' };
       }
     }
@@ -240,9 +232,15 @@ export const linkingService = {
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
       try {
-        await apiFetch(`/api/links/${encodeURIComponent(linkId)}/approve`, { method: 'POST', body: JSON.stringify({ parentId }) });
+        await apiRequest(`/api/links/${encodeURIComponent(linkId)}/approve`, {
+          method: 'POST',
+          body: JSON.stringify({ parentId })
+        }, { queueIfOffline: true });
         return { success: true };
       } catch (e: any) {
+        if (e?.queued) {
+          return { success: false, error: 'Offline: approval queued. Try again when online.' };
+        }
         return { success: false, error: e?.message || 'Failed to approve link' };
       }
     }
@@ -260,7 +258,7 @@ export const linkingService = {
   async declineLinkAsync(linkId: string): Promise<void> {
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
-      await apiFetch(`/api/links/${encodeURIComponent(linkId)}/decline`, { method: 'POST' });
+      await apiRequest(`/api/links/${encodeURIComponent(linkId)}/decline`, { method: 'POST' }, { queueIfOffline: true });
       return;
     }
     this.declineLink(linkId);
@@ -279,7 +277,10 @@ export const linkingService = {
   async unlinkAsync(parentId: string, childId: string): Promise<void> {
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (ENABLE_SYNC || API_BASE_URL) {
-      await apiFetch('/api/links/unlink', { method: 'POST', body: JSON.stringify({ parentId, childId }) });
+      await apiRequest('/api/links/unlink', {
+        method: 'POST',
+        body: JSON.stringify({ parentId, childId })
+      }, { queueIfOffline: true });
       return;
     }
     this.unlink(parentId, childId);
@@ -288,12 +289,12 @@ export const linkingService = {
   async getPendingForParentRemote(parentId: string) {
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (!(ENABLE_SYNC || API_BASE_URL)) return this.getPendingForParent(parentId);
-    return apiFetch(`/api/parents/${encodeURIComponent(parentId)}/links/pending`, { method: 'GET' });
+    return apiRequest(`/api/parents/${encodeURIComponent(parentId)}/links/pending`, { method: 'GET' }, { cacheTtlMs: 5000 });
   },
 
   async getActiveForParentRemote(parentId: string) {
     const { ENABLE_SYNC, API_BASE_URL } = getEnv();
     if (!(ENABLE_SYNC || API_BASE_URL)) return this.getActiveLinksForParent(parentId);
-    return apiFetch(`/api/parents/${encodeURIComponent(parentId)}/links/active`, { method: 'GET' });
+    return apiRequest(`/api/parents/${encodeURIComponent(parentId)}/links/active`, { method: 'GET' }, { cacheTtlMs: 5000 });
   },
 };

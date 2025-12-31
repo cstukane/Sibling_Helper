@@ -67,7 +67,7 @@ describe('QuestForm Component', () => {
       title: 'Test Task',
       description: null,
       category: undefined,
-      points: 15,
+      points: 10,
       active: true,
       recurrence: undefined
     });

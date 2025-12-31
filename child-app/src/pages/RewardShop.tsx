@@ -4,13 +4,29 @@ import { useRewards } from '@state/rewards';
 import { useRedemptions } from '@state/redemptions';
 import RewardCard from '@components/RewardCard';
 import PinPad from '@components/PinPad';
+import { pinManager } from '@state/pinManager';
 
 const RewardShop: React.FC = () => {
-  const { hero } = useHero();
-  const { rewards } = useRewards();
-  const { redeemReward } = useRedemptions(hero?.id || '');
+  const { hero, loading: heroLoading, error: heroError, refreshHero } = useHero();
+  const { rewards, loading: rewardsLoading, error: rewardsError, refreshRewards } = useRewards();
+  const {
+    redeemReward,
+    loading: redemptionsLoading,
+    error: redemptionsError,
+    refreshRedemptions
+  } = useRedemptions(hero?.id || '');
   const [showPinPad, setShowPinPad] = useState(false);
   const [selectedReward, setSelectedReward] = useState<string | null>(null);
+  const errorMessages = [heroError, rewardsError, redemptionsError].filter(Boolean) as string[];
+  const isLoading = heroLoading || rewardsLoading || redemptionsLoading;
+
+  const handleRetry = async () => {
+    await refreshHero();
+    await refreshRewards();
+    if (hero?.id) {
+      await refreshRedemptions(hero.id);
+    }
+  };
 
   const handleRedeem = (rewardId: string, cost: number) => {
     if (!hero) return;
@@ -25,10 +41,9 @@ const RewardShop: React.FC = () => {
     setShowPinPad(true);
   };
 
-  const handlePinEntered = (pin: string) => {
-    // In a real app, we would validate the PIN properly
-    // For now, we'll just check if it's the default
-    if (pin === '1234' && selectedReward && hero) {
+  const handlePinEntered = async (pin: string) => {
+    await pinManager.initializeDefaultPin();
+    if (selectedReward && hero && await pinManager.validatePin(pin)) {
       const reward = rewards.find(r => r.id === selectedReward);
       if (reward) {
         redeemReward(hero.id, reward.id, reward.cost);
@@ -48,12 +63,74 @@ const RewardShop: React.FC = () => {
     setSelectedReward(null);
   };
 
-  if (!hero) {
+  if (isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (!hero) {
+    return (
+      <section>
+        <div style={{ 
+          border: '1px solid var(--state-error)',
+          backgroundColor: 'var(--bg-surface-overlay)',
+          color: 'var(--state-error)',
+          padding: 12,
+          borderRadius: 8
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>Unable to load profile</div>
+          {errorMessages.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              {errorMessages.map((message, index) => (
+                <div key={`${message}-${index}`}>{message}</div>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={handleRetry}
+            className="themed-button primary"
+            style={{
+              padding: '8px 12px',
+              borderRadius: 6,
+              fontWeight: 'bold'
+            }}
+          >
+            Retry loading
+          </button>
+        </div>
+      </section>
+    );
   }
 
   return (
     <section>
+      {errorMessages.length > 0 && (
+        <div style={{ 
+          border: '1px solid var(--state-error)',
+          backgroundColor: 'var(--bg-surface-overlay)',
+          color: 'var(--state-error)',
+          padding: 12,
+          borderRadius: 8,
+          marginBottom: 16
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: 8 }}>We ran into a data error</div>
+          <div style={{ marginBottom: 12 }}>
+            {errorMessages.map((message, index) => (
+              <div key={`${message}-${index}`}>{message}</div>
+            ))}
+          </div>
+          <button
+            onClick={handleRetry}
+            className="themed-button primary"
+            style={{
+              padding: '8px 12px',
+              borderRadius: 6,
+              fontWeight: 'bold'
+            }}
+          >
+            Retry loading
+          </button>
+        </div>
+      )}
       <header style={{ marginBottom: 24 }}>
         <h1>Reward Shop</h1>
         <div style={{ fontSize: 18, fontWeight: 'bold' }}>

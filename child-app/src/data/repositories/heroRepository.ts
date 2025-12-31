@@ -1,4 +1,7 @@
 import { db } from '../db';
+import { executeDbOperation, safeDbOperation } from '../dbOperations';
+import { queueBackup } from '../dbMaintenance';
+import { formatDatabaseError } from '../../utils/errorMessages';
 import type { Hero } from '@state/heroTypes';
 
 type NewHeroInput = Omit<
@@ -16,21 +19,11 @@ type NewHeroInput = Omit<
 
 export const heroRepository = {
   async getAll(): Promise<Hero[]> {
-    try {
-      return await db.heroes.toArray();
-    } catch (error) {
-      console.error('Error getting all heroes:', error);
-      return [];
-    }
+    return safeDbOperation('loading heroes', () => db.heroes.toArray(), []);
   },
 
   async getById(id: string): Promise<Hero | undefined> {
-    try {
-      return await db.heroes.get(id);
-    } catch (error) {
-      console.error(`Error getting hero by id ${id}:`, error);
-      return undefined;
-    }
+    return safeDbOperation(`loading hero ${id}`, () => db.heroes.get(id), undefined);
   },
 
   async create(hero: NewHeroInput): Promise<string> {
@@ -49,10 +42,11 @@ export const heroRepository = {
         avatarUrl: hero.avatarUrl || null
       };
 
-      await db.heroes.add(heroToSave);
+      await executeDbOperation('creating hero', () => db.heroes.add(heroToSave));
+      queueBackup();
       return id;
     } catch (error) {
-      console.error('Error creating hero:', error);
+      console.error(formatDatabaseError('creating hero', error), error);
       throw error;
     }
   },
@@ -60,18 +54,20 @@ export const heroRepository = {
   async update(id: string, updates: Partial<Hero>): Promise<void> {
     try {
       const now = new Date().toISOString();
-      await db.heroes.update(id, { ...updates, updatedAt: now });
+      await executeDbOperation('updating hero', () => db.heroes.update(id, { ...updates, updatedAt: now }));
+      queueBackup();
     } catch (error) {
-      console.error(`Error updating hero ${id}:`, error);
+      console.error(formatDatabaseError(`updating hero ${id}`, error), error);
       throw error;
     }
   },
 
   async delete(id: string): Promise<void> {
     try {
-      await db.heroes.delete(id);
+      await executeDbOperation('deleting hero', () => db.heroes.delete(id));
+      queueBackup();
     } catch (error) {
-      console.error(`Error deleting hero ${id}:`, error);
+      console.error(formatDatabaseError(`deleting hero ${id}`, error), error);
       throw error;
     }
   },
@@ -85,7 +81,7 @@ export const heroRepository = {
         await this.update(heroId, { progressionPoints: newProgressionPoints });
       }
     } catch (error) {
-      console.error(`Error adding ${points} progression points to hero ${heroId}:`, error);
+      console.error(formatDatabaseError(`adding progression points to hero ${heroId}`, error), error);
       throw error;
     }
   },
@@ -99,7 +95,7 @@ export const heroRepository = {
         await this.update(heroId, { rewardPoints: newRewardPoints });
       }
     } catch (error) {
-      console.error(`Error adding ${points} reward points to hero ${heroId}:`, error);
+      console.error(formatDatabaseError(`adding reward points to hero ${heroId}`, error), error);
       throw error;
     }
   },
@@ -109,7 +105,7 @@ export const heroRepository = {
       // Spending rewards only decreases reward points, not progression points
       await this.addRewardPoints(heroId, -points);
     } catch (error) {
-      console.error(`Error spending ${points} reward points for hero ${heroId}:`, error);
+      console.error(formatDatabaseError(`spending reward points for hero ${heroId}`, error), error);
       throw error;
     }
   },
@@ -120,7 +116,7 @@ export const heroRepository = {
       await this.addProgressionPoints(heroId, points);
       await this.addRewardPoints(heroId, points);
     } catch (error) {
-      console.error(`Error earning ${points} points from quest for hero ${heroId}:`, error);
+      console.error(formatDatabaseError(`earning quest points for hero ${heroId}`, error), error);
       throw error;
     }
   },
@@ -146,7 +142,7 @@ export const heroRepository = {
       const hero = await this.getById(id);
       return hero!;
     } catch (error) {
-      console.error('Error initializing default hero:', error);
+      console.error(formatDatabaseError('initializing default hero', error), error);
       throw error;
     }
   }

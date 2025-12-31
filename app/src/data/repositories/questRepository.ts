@@ -1,4 +1,7 @@
 import { db } from '../db';
+import { executeDbOperation, safeDbOperation } from '../dbOperations';
+import { queueBackup } from '../dbMaintenance';
+import { formatDatabaseError } from '../../utils/errorMessages';
 import type { Quest } from '@state/questTypes';
 
 type NewQuestInput = Omit<Quest, 'id' | 'createdAt' | 'updatedAt' | 'active'> & {
@@ -8,21 +11,11 @@ type NewQuestInput = Omit<Quest, 'id' | 'createdAt' | 'updatedAt' | 'active'> & 
 
 export const questRepository = {
   async getAll(): Promise<Quest[]> {
-    try {
-      return await db.quests.toArray();
-    } catch (error) {
-      console.error('Error getting all quests:', error);
-      return [];
-    }
+    return safeDbOperation('loading quests', () => db.quests.toArray(), []);
   },
 
   async getById(id: string): Promise<Quest | undefined> {
-    try {
-      return await db.quests.get(id);
-    } catch (error) {
-      console.error(`Error getting quest by id ${id}:`, error);
-      return undefined;
-    }
+    return safeDbOperation(`loading quest ${id}`, () => db.quests.get(id), undefined);
   },
 
   async getByCategory(category: Quest['category']): Promise<Quest[]> {
@@ -31,7 +24,7 @@ export const questRepository = {
       const allQuests = await this.getAll();
       return allQuests.filter(quest => quest.category === category);
     } catch (error) {
-      console.error(`Error getting quests by category ${category}:`, error);
+      console.error(formatDatabaseError(`loading quests by category ${category}`, error), error);
       return [];
     }
   },
@@ -42,7 +35,7 @@ export const questRepository = {
       const allQuests = await this.getAll();
       return allQuests.filter(quest => quest.active === true);
     } catch (error) {
-      console.error('Error getting active quests:', error);
+      console.error(formatDatabaseError('loading active quests', error), error);
       return [];
     }
   },
@@ -58,7 +51,7 @@ export const questRepository = {
         quest.recurrence !== undefined
       );
     } catch (error) {
-      console.error('Error getting recurring chores:', error);
+      console.error(formatDatabaseError('loading recurring chores', error), error);
       return [];
     }
   },
@@ -80,10 +73,11 @@ export const questRepository = {
         updatedAt: now
       };
 
-      await db.quests.add(questToSave);
+      await executeDbOperation('creating quest', () => db.quests.add(questToSave));
+      queueBackup();
       return id;
     } catch (error) {
-      console.error('Error creating quest:', error);
+      console.error(formatDatabaseError('creating quest', error), error);
       throw error;
     }
   },
@@ -91,18 +85,20 @@ export const questRepository = {
   async update(id: string, updates: Partial<Quest>): Promise<void> {
     try {
       const now = new Date().toISOString();
-      await db.quests.update(id, { ...updates, updatedAt: now });
+      await executeDbOperation('updating quest', () => db.quests.update(id, { ...updates, updatedAt: now }));
+      queueBackup();
     } catch (error) {
-      console.error(`Error updating quest ${id}:`, error);
+      console.error(formatDatabaseError(`updating quest ${id}`, error), error);
       throw error;
     }
   },
 
   async delete(id: string): Promise<void> {
     try {
-      await db.quests.delete(id);
+      await executeDbOperation('deleting quest', () => db.quests.delete(id));
+      queueBackup();
     } catch (error) {
-      console.error(`Error deleting quest ${id}:`, error);
+      console.error(formatDatabaseError(`deleting quest ${id}`, error), error);
       throw error;
     }
   },
@@ -126,7 +122,7 @@ export const questRepository = {
         await this.create(quest);
       }
     } catch (error) {
-      console.error('Error initializing stock quests:', error);
+      console.error(formatDatabaseError('initializing stock quests', error), error);
     }
   }
 };

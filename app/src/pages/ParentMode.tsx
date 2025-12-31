@@ -5,6 +5,7 @@ import { useRewards } from '@state/rewards';
 import QuestForm from '@components/QuestForm';
 import RewardForm from '@components/RewardForm';
 import { pinManager } from '@state/pinManager';
+import { isValidPin, sanitizePinInput, sanitizeText } from '../utils/sanitize';
 
 const ParentMode: React.FC = () => {
   const { hero, updateHero, loading: heroLoading } = useHero();
@@ -50,7 +51,10 @@ const ParentMode: React.FC = () => {
     if (!hero) return;
     
     try {
-      const updates: any = { name: newName };
+      const safeName = sanitizeText(newName, 60);
+      if (!safeName) return;
+      setNewName(safeName);
+      const updates: any = { name: safeName };
       
       // If there's a new avatar, convert it to a data URL
       if (selectedAvatar) {
@@ -94,7 +98,7 @@ const ParentMode: React.FC = () => {
     }
   };
 
-  const handleChangePin = () => {
+  const handleChangePin = async () => {
     if (!newPin || !confirmPin) {
       setPinMessage('Please fill in all fields');
       return;
@@ -105,13 +109,17 @@ const ParentMode: React.FC = () => {
       return;
     }
     
-    if (newPin.length !== 4) {
+    if (!isValidPin(newPin)) {
       setPinMessage('PIN must be 4 digits');
       return;
     }
     
     // Change PIN
-    pinManager.setPin(newPin);
+    const didSet = await pinManager.setPin(newPin);
+    if (!didSet) {
+      setPinMessage('PIN must be 4 digits');
+      return;
+    }
     setPinMessage('PIN changed successfully!');
     
     // Clear form
@@ -690,7 +698,7 @@ const ParentMode: React.FC = () => {
                 <input
                   type="password"
                   value={newPin}
-                  onChange={(e) => setNewPin(e.target.value)}
+                  onChange={(e) => setNewPin(sanitizePinInput(e.target.value))}
                   placeholder="Enter new 4-digit PIN"
                   maxLength={4}
                   style={{
@@ -710,7 +718,7 @@ const ParentMode: React.FC = () => {
                 <input
                   type="password"
                   value={confirmPin}
-                  onChange={(e) => setConfirmPin(e.target.value)}
+                  onChange={(e) => setConfirmPin(sanitizePinInput(e.target.value))}
                   placeholder="Confirm new PIN"
                   maxLength={4}
                   style={{

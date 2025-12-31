@@ -1,33 +1,25 @@
 import { db } from '../db';
 import { heroRepository } from './heroRepository';
+import { executeDbOperation, safeDbOperation } from '../dbOperations';
+import { queueBackup } from '../dbMaintenance';
+import { formatDatabaseError } from '../../utils/errorMessages';
 import type { Redemption } from '@state/redemptionTypes';
 
 export const redemptionRepository = {
   async getAll(): Promise<Redemption[]> {
-    try {
-      return await db.redemptions.toArray();
-    } catch (error) {
-      console.error('Error getting all redemptions:', error);
-      return [];
-    }
+    return safeDbOperation('loading redemptions', () => db.redemptions.toArray(), []);
   },
 
   async getById(id: string): Promise<Redemption | undefined> {
-    try {
-      return await db.redemptions.get(id);
-    } catch (error) {
-      console.error(`Error getting redemption by id ${id}:`, error);
-      return undefined;
-    }
+    return safeDbOperation(`loading redemption ${id}`, () => db.redemptions.get(id), undefined);
   },
 
   async getByHeroId(heroId: string): Promise<Redemption[]> {
-    try {
-      return await db.redemptions.where('heroId').equals(heroId).toArray();
-    } catch (error) {
-      console.error(`Error getting redemptions for hero ${heroId}:`, error);
-      return [];
-    }
+    return safeDbOperation(
+      `loading redemptions for hero ${heroId}`,
+      () => db.redemptions.where('heroId').equals(heroId).toArray(),
+      []
+    );
   },
 
   async create(redemption: Omit<Redemption, 'id' | 'redeemedAt'> & { id?: string }): Promise<string> {
@@ -48,19 +40,21 @@ export const redemptionRepository = {
       await heroRepository.spendRewardPoints(redemption.heroId, redemption.pointsSpent);
       
       // Then create the redemption record
-      await db.redemptions.add(redemptionToSave);
+      await executeDbOperation('creating redemption', () => db.redemptions.add(redemptionToSave));
+      queueBackup();
       return id;
     } catch (error) {
-      console.error('Error creating redemption:', error);
+      console.error(formatDatabaseError('creating redemption', error), error);
       throw error;
     }
   },
 
   async delete(id: string): Promise<void> {
     try {
-      await db.redemptions.delete(id);
+      await executeDbOperation('deleting redemption', () => db.redemptions.delete(id));
+      queueBackup();
     } catch (error) {
-      console.error(`Error deleting redemption ${id}:`, error);
+      console.error(formatDatabaseError(`deleting redemption ${id}`, error), error);
       throw error;
     }
   }
